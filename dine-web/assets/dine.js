@@ -1676,7 +1676,7 @@ define('dine/services/branch-metrics', ['exports', 'ember', 'dine/config/environ
         showSmartAppBanner: function showSmartAppBanner(options, data) {
             var defaultOptions = {
                 // icon: 'http://icons.iconarchive.com/icons/wineass/ios7-redesign/512/Appstore-icon.png',
-                icon: '/assets/images/dine-icon.png',
+                icon: 'assets/images/dine-icon.png',
                 title: 'DINE by Tasting Table',
                 description: 'Curated restaurant discovery app that makes it easy to find the perfect restaurant for any occasion.',
                 downloadAppButtonText: 'Download',
