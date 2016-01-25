@@ -1,0 +1,116 @@
+/* NProcess bar*/
+#nprogress .bar {
+  background-color: #FFc000;
+  height: 4px;
+}
+
+#nprogress .peg {
+  box-shadow: 0 0 10px #FFc000, 0 0 5px #FFc000;
+}
+
+/* Loader component */
+/* Code from http://tobiasahlin.com/spinkit/ */
+.spinner {
+  margin: 100px auto;
+  width: 100px;
+  height: 80px;
+  text-align: center;
+  font-size: 10px;
+}
+
+.spinner > div {
+  background-color: #333;
+  height: 100%;
+  width: 12px;
+  display: inline-block;
+
+  -webkit-animation: sk-stretchdelay 1.2s infinite ease-in-out;
+  animation: sk-stretchdelay 1.2s infinite ease-in-out;
+}
+
+.spinner .rect2 {
+  -webkit-animation-delay: -1.1s;
+  animation-delay: -1.1s;
+}
+
+.spinner .rect3 {
+  -webkit-animation-delay: -1.0s;
+  animation-delay: -1.0s;
+}
+
+.spinner .rect4 {
+  -webkit-animation-delay: -0.9s;
+  animation-delay: -0.9s;
+}
+
+.spinner .rect5 {
+  -webkit-animation-delay: -0.8s;
+  animation-delay: -0.8s;
+}
+
+@-webkit-keyframes sk-stretchdelay {
+  0%, 40%, 100% { -webkit-transform: scaleY(0.4) }
+  20% { -webkit-transform: scaleY(1.0) }
+}
+
+@keyframes sk-stretchdelay {
+  0%, 40%, 100% {
+    transform: scaleY(0.4);
+    -webkit-transform: scaleY(0.4);
+  }  20% {
+    transform: scaleY(1.0);
+    -webkit-transform: scaleY(1.0);
+  }
+}
+
+/* Twiiter Typehead (search autocomplete) */
+
+.twitter-typeahead {
+  width: 100%;
+}
+.twitter-typeahead .tt-hint {
+  border: 2px solid #ccc;
+  color: #999;
+  margin: 0px;
+  outline: none;
+  padding: 8px 12px;
+  width: 100%;
+}
+.twitter-typeahead .tt-menu {
+  background-color: #fff;
+  border-top: 0px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 0;
+  width: 100%;
+}
+.twitter-typeahead .tt-menu .tt-suggestion {
+  font-size: 18px;
+  font-weight: normal;
+  line-height: 24px;
+  padding: 3px 20px;
+  text-align: left;
+}
+.twitter-typeahead .tt-menu .tt-suggestion.tt-cursor {
+  background-color: #0097cf;
+  color: #fff;
+}
+.twitter-typeahead .tt-menu .tt-suggestion p {
+  margin: 0;
+}
+.twitter-typeahead .tt-menu .tt-suggestion a {
+  color: #000;
+  text-decoration: none;
+}
+.twitter-typeahead .tt-menu .tt-suggestion em {
+  font-style: normal;
+  font-weight: bold;
+}
+.twitter-typeahead .tt-menu .tt-suggestion small {
+  font-size: smaller;
+}
+
+/* Branch Metrics - Smart App Banners */
+/*removing the default 76px added on body when showing banner*/
+body.branch-banner-is-active { 
+  margin-top: 0 !important; 
+}
