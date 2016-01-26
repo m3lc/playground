@@ -544,9 +544,8 @@ define('dine/components/smart-app-banner', ['exports', 'ember'], function (expor
         },
         showSmartAppBanner: function showSmartAppBanner() {
             var brMetrics = this.get("branchMetrics");
-            var self = this;
-            var bannerData = this.get("bannerData") || {};
             var bannerOptions = this.get("bannerOptions");
+            var bannerData = this.get("bannerData") || {};
             brMetrics.showSmartAppBanner(bannerOptions, bannerData);
         }
     });
@@ -1725,19 +1724,19 @@ define('dine/services/branch-metrics', ['exports', 'ember', 'dine/config/environ
         showSmartAppBanner: function showSmartAppBanner(options, data) {
             var debounceDelay = 1000;
             if ($("#branch-banner-iframe").length !== 0) {
-                Em.run.debounce(this, this._closeBanner, options, data, debounceDelay, debounceDelay);
+                Em.run.debounce(this, this._closeBanner, options, data, debounceDelay);
             } else {
                 //by default if showing has been called more than once,
                 //then the first call gets rendered
                 Em.run.debounce(this, this._showBanner, options, data, debounceDelay);
             }
         },
-        _closeBanner: function _closeBanner(options, data, debounceDelay) {
+        _closeBanner: function _closeBanner(options, data) {
             var self = this;
             //by default if the banner does not finish closing,
             //then it does not show, so a listener is required
             var didCloseBannerListener = function didCloseBannerListener(event) {
-                Em.run.debounce(self, self._showBanner, options, data, debounceDelay);
+                self._showBanner(options, data);
                 self.get("branch").removeListener(didCloseBannerListener);
             };
             self.get("branch").addListener("didCloseBanner", didCloseBannerListener);
@@ -2419,44 +2418,6 @@ define('dine/templates/city/loading', ['exports'], function (exports) {
       },
       statements: [
         ["content","loading-indicator",["loc",[null,[1,0],[1,21]]]]
-      ],
-      locals: [],
-      templates: []
-    };
-  }()));
-
-});
-define('dine/templates/city/restaurant-loading', ['exports'], function (exports) {
-
-  'use strict';
-
-  exports['default'] = Ember.HTMLBars.template((function() {
-    return {
-      meta: {
-        "revision": "Ember@2.0.0",
-        "loc": {
-          "source": null,
-          "start": {
-            "line": 1,
-            "column": 0
-          },
-          "end": {
-            "line": 1,
-            "column": 0
-          }
-        },
-        "moduleName": "dine/templates/city/restaurant-loading.hbs"
-      },
-      arity: 0,
-      cachedFragment: null,
-      hasRendered: false,
-      buildFragment: function buildFragment(dom) {
-        var el0 = dom.createDocumentFragment();
-        return el0;
-      },
-      buildRenderNodes: function buildRenderNodes() { return []; },
-      statements: [
-
       ],
       locals: [],
       templates: []
@@ -8928,7 +8889,7 @@ define('dine/tests/components/smart-app-banner.jshint', function () {
   QUnit.module('JSHint - components');
   QUnit.test('components/smart-app-banner.js should pass jshint', function(assert) { 
     assert.expect(1);
-    assert.ok(false, 'components/smart-app-banner.js should pass jshint.\ncomponents/smart-app-banner.js: line 21, col 13, \'self\' is defined but never used.\n\n1 error'); 
+    assert.ok(true, 'components/smart-app-banner.js should pass jshint.'); 
   });
 
 });
@@ -11734,7 +11695,7 @@ catch(err) {
 if (runningTests) {
   require("dine/tests/test-helper");
 } else {
-  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+6ab6350c"});
+  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+a0ff8693"});
 }
 
 /* jshint ignore:end */
