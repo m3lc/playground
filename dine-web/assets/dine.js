@@ -533,13 +533,21 @@ define('dine/components/smart-app-banner', ['exports', 'ember'], function (expor
     */
     exports['default'] = Ember['default'].Component.extend({
         branchMetrics: Em.inject.service("branch-metrics"),
+        bannerOptions: null,
+        bannerData: null,
         didInsertElement: function didInsertElement() {
             this._super.apply(this, arguments);
+            Ember['default'].run.scheduleOnce('afterRender', this, this.afterRenderEvent);
+        },
+        afterRenderEvent: function afterRenderEvent() {
             this.showSmartAppBanner();
         },
         showSmartAppBanner: function showSmartAppBanner() {
             var brMetrics = this.get("branchMetrics");
-            brMetrics.showSmartAppBanner();
+            var self = this;
+            var bannerData = this.get("bannerData") || {};
+            var bannerOptions = this.get("bannerOptions");
+            brMetrics.showSmartAppBanner(bannerOptions, bannerData);
         }
     });
 
@@ -595,6 +603,17 @@ define('dine/controllers/array', ['exports', 'ember'], function (exports, Ember)
 	'use strict';
 
 	exports['default'] = Ember['default'].Controller;
+
+});
+define('dine/controllers/city/index', ['exports', 'ember'], function (exports, Ember) {
+
+  'use strict';
+
+  exports['default'] = Ember['default'].Controller.extend({
+    neighborhoodSlug: "all",
+    cuisineSlug: "all",
+    featureSlug: "all"
+  });
 
 });
 define('dine/controllers/city/neighborhood', ['exports', 'ember'], function (exports, Ember) {
@@ -812,11 +831,90 @@ define('dine/router', ['exports', 'ember', 'dine/config/environment'], function 
   exports['default'] = Router;
 
 });
+define('dine/routes/city/collections/index', ['exports', 'ember'], function (exports, Ember) {
+
+  'use strict';
+
+  exports['default'] = Ember['default'].Route.extend({
+    cityService: Ember['default'].inject.service('city'),
+    activate: function activate() {
+      Ember['default'].$('body').removeClass('section-restaurant-landing').removeClass('section-restaurant').removeClass('js-restaurant-page').addClass('section-map-app').addClass('sticky-map').addClass('js-dine-in-app');
+      Ember['default'].$('.wave.dine').hide();
+      Ember['default'].$('footer').hide();
+      Ember['default'].$('.js-loading-indicator').addClass('hidden');
+      Ember['default'].$('.js-content-toggle').removeClass('hidden');
+    },
+    deactivate: function deactivate() {
+      Ember['default'].$('body').removeClass('section-map-app').removeClass('js-dine-in-app').removeClass('section-restaurant').removeClass('js-restaurant-page').removeClass('sticky').removeClass('sticky-map').addClass('section-restaurant-landing');
+      Ember['default'].$('.wave.dine').show();
+      Ember['default'].$('footer').show();
+    },
+    beforeModel: function beforeModel(transition) {
+      window.NProgress.start();
+
+      var self = this;
+      var params = transition.params['city.collections'];
+      var cityService = self.get('cityService');
+      var citySlug = params.citySlug;
+
+      return new Ember['default'].RSVP.Promise(function (resolve, reject) {
+        var cities = self.modelFor('city');
+        var city = cities.findBy('slug', citySlug);
+
+        if (!cityService.current.id || cityService.current.slug !== city.slug) {
+          cityService.addCurrent(city);
+        }
+
+        resolve(city);
+      }, function (error) {
+        reject(error);
+      });
+    },
+    model: function model(params) {
+      var self = this;
+
+      return new Ember['default'].RSVP.Promise(function (resolve, reject) {
+        self.get('cityService').getCollections().then(function (collections) {
+          resolve(collections);
+        }, function (error) {
+          reject(error);
+        });
+      }, function (error) {
+        reject(error);
+      });
+    },
+    afterModel: function afterModel() {
+      window.NProgress.done();
+    },
+    setupController: function setupController(controller, model) {
+      var cityService = this.get('cityService');
+      var currentCity = cityService.current;
+
+      controller.set('collections', model);
+      controller.set('cities', cityService.cities);
+      controller.set('cityName', currentCity.name);
+      controller.set('citySlug', currentCity.slug);
+    }
+
+  });
+
+});
 define('dine/routes/city/collections/restaurants/restaurant', ['exports', 'ember'], function (exports, Ember) {
 
 	'use strict';
 
-	exports['default'] = Ember['default'].Route.extend({});
+	exports['default'] = Ember['default'].Route.extend({
+		setupController: function setupController(controller, model) {
+			this._super.apply(this, arguments);
+			var bannerData = {
+				feature: 'smart banner',
+				data: {
+					'restaurantId': model["id"]
+				}
+			};
+			controller.set("bannerData", bannerData);
+		}
+	});
 
 });
 define('dine/routes/city/collections/restaurants', ['exports', 'ember'], function (exports, Ember) {
@@ -880,81 +978,29 @@ define('dine/routes/city/collections/restaurants', ['exports', 'ember'], functio
       controller.set('cities', cityService.cities);
       controller.set('cityName', currentCity.name);
       controller.set('citySlug', currentCity.slug);
-    },
-    renderTemplate: function renderTemplate() {
-      this.render('city.collections.restaurants', { into: 'application' });
+      var bannerData = {
+        feature: 'smart banner',
+        data: {
+          'collectionId': model["id"]
+        }
+      };
+      controller.set("bannerData", bannerData);
     }
   });
 
 });
 define('dine/routes/city/collections', ['exports', 'ember'], function (exports, Ember) {
 
-  'use strict';
+	'use strict';
 
-  exports['default'] = Ember['default'].Route.extend({
-    cityService: Ember['default'].inject.service('city'),
-    activate: function activate() {
-      Ember['default'].$('body').removeClass('section-restaurant-landing').removeClass('section-restaurant').removeClass('js-restaurant-page').addClass('section-map-app').addClass('sticky-map').addClass('js-dine-in-app');
-      Ember['default'].$('.wave.dine').hide();
-      Ember['default'].$('footer').hide();
-      Ember['default'].$('.js-loading-indicator').addClass('hidden');
-      Ember['default'].$('.js-content-toggle').removeClass('hidden');
-    },
-    deactivate: function deactivate() {
-      Ember['default'].$('body').removeClass('section-map-app').removeClass('js-dine-in-app').removeClass('section-restaurant').removeClass('js-restaurant-page').removeClass('sticky').removeClass('sticky-map').addClass('section-restaurant-landing');
-      Ember['default'].$('.wave.dine').show();
-      Ember['default'].$('footer').show();
-    },
-    beforeModel: function beforeModel(transition) {
-      window.NProgress.start();
+	exports['default'] = Ember['default'].Route.extend({});
 
-      var self = this;
-      var params = transition.params['city.collections'];
-      var cityService = self.get('cityService');
-      var citySlug = params.citySlug;
+});
+define('dine/routes/city/index', ['exports', 'ember', 'dine/routes/city'], function (exports, Ember, CityRoute) {
 
-      return new Ember['default'].RSVP.Promise(function (resolve, reject) {
-        var cities = self.modelFor('city');
-        var city = cities.findBy('slug', citySlug);
+	'use strict';
 
-        if (!cityService.current.id || cityService.current.slug !== city.slug) {
-          cityService.addCurrent(city);
-        }
-
-        resolve(city);
-      }, function (error) {
-        reject(error);
-      });
-    },
-    model: function model(params) {
-      var self = this;
-
-      return new Ember['default'].RSVP.Promise(function (resolve, reject) {
-        self.get('cityService').getCollections().then(function (collections) {
-          resolve(collections);
-        }, function (error) {
-          reject(error);
-        });
-      }, function (error) {
-        reject(error);
-      });
-    },
-    afterModel: function afterModel() {
-      window.NProgress.done();
-    },
-    setupController: function setupController(controller, model) {
-      var cityService = this.get('cityService');
-      var currentCity = cityService.current;
-
-      controller.set('collections', model);
-      controller.set('cities', cityService.cities);
-      controller.set('cityName', currentCity.name);
-      controller.set('citySlug', currentCity.slug);
-    },
-    renderTemplate: function renderTemplate() {
-      this.render('city.collections', { into: 'application' });
-    }
-  });
+	exports['default'] = CityRoute['default'].extend({});
 
 });
 define('dine/routes/city/restaurant', ['exports', 'ember'], function (exports, Ember) {
@@ -1057,9 +1103,13 @@ define('dine/routes/city/restaurant', ['exports', 'ember'], function (exports, E
         estZip: restaurant.zip,
         estPhone: restaurant.phone
       }]);
-    },
-    renderTemplate: function renderTemplate() {
-      this.render('city.restaurant', { into: 'application' });
+      var bannerData = {
+        feature: 'smart banner',
+        data: {
+          'restaurantId': model["id"]
+        }
+      };
+      controller.set("bannerData", bannerData);
     }
   });
 
@@ -1182,9 +1232,6 @@ define('dine/routes/city/restaurants', ['exports', 'ember'], function (exports, 
       controller.set('neighborhoods', currentNeighborhoods);
       controller.set('cuisines', currentCuisines);
       controller.set('features', currentFeatures);
-    },
-    renderTemplate: function renderTemplate() {
-      this.render('city.restaurants', { into: 'application' });
     }
   });
 
@@ -1238,11 +1285,11 @@ define('dine/routes/city', ['exports', 'ember'], function (exports, Ember) {
       return new Ember['default'].RSVP.Promise(function (resolve, reject) {
         cityService.getCollections().then(function (collections) {
           collectionsByCity[cityService.current.id] = collections;
-          if (self.controller) {
-            self.controller.set('collections', collections);
-          } else {
-            self.controllerFor('city').set('collections', collections);
-          }
+          // if (self.controller) {
+          //   self.controller.set('collections', collections);
+          // } else {
+          self.controllerFor('city.index').set('collections', collections);
+          // }
 
           resolve(collections);
         }, function (error) {
@@ -1271,11 +1318,11 @@ define('dine/routes/city', ['exports', 'ember'], function (exports, Ember) {
 
       this.getCollections().then(function () {
         cityService.getNeighborhoods().then(function (neighborhoods) {
-          if (self.controller) {
-            self.controller.set('neighborhoods', neighborhoods);
-          } else {
-            self.controllerFor('city').set('neighborhoods', neighborhoods);
-          }
+          // if (self.controller) {
+          //   self.controller.set('neighborhoods', neighborhoods);
+          // } else {
+          self.controllerFor('city.index').set('neighborhoods', neighborhoods);
+          // }
         });
       });
     },
@@ -1287,11 +1334,11 @@ define('dine/routes/city', ['exports', 'ember'], function (exports, Ember) {
         var self = this;
 
         this.get('cityService').getCuisinesBy(neighborhoodSlug).then(function (cuisines) {
-          if (self.controller) {
-            self.controller.set('cuisines', cuisines);
-          } else {
-            self.controllerFor('city').set('cuisines', cuisines);
-          }
+          // if (self.controller) {
+          //   self.controller.set('cuisines', cuisines);
+          // } else {
+          self.controllerFor('city.index').set('cuisines', cuisines);
+          // }
         });
       }
     }
@@ -1670,17 +1717,43 @@ define('dine/services/branch-metrics', ['exports', 'ember', 'dine/config/environ
             }, { _q: [], _v: 1 }, "addListener applyCode banner closeBanner creditHistory credits data deepview deepviewCta first getCode init link logout redeem referrals removeListener sendSMS setIdentity track validateCode".split(" "), 0);
 
             // Note that this example is using the key in two places, here and below
-            branch.init(ENV['default'].APP.BRANCH_METRICS_KEY, function (err, data) {});
+            branch.init(ENV['default'].APP.BRANCH_METRICS_KEY, function (err, data) {
+                self.set("branch", branch);
+            });
             self.set("branch", branch);
         },
         showSmartAppBanner: function showSmartAppBanner(options, data) {
+            var debounceDelay = 1000;
+            if ($("#branch-banner-iframe").length !== 0) {
+                Em.run.debounce(this, this._closeBanner, options, data, debounceDelay, debounceDelay);
+            } else {
+                //by default if showing has been called more than once,
+                //then the first call gets rendered
+                Em.run.debounce(this, this._showBanner, options, data, debounceDelay);
+            }
+        },
+        _closeBanner: function _closeBanner(options, data, debounceDelay) {
+            var self = this;
+            //by default if the banner does not finish closing,
+            //then it does not show, so a listener is required
+            var didCloseBannerListener = function didCloseBannerListener(event) {
+                Em.run.debounce(self, self._showBanner, options, data, debounceDelay);
+                self.get("branch").removeListener(didCloseBannerListener);
+            };
+            self.get("branch").addListener("didCloseBanner", didCloseBannerListener);
+            branch.closeBanner();
+        },
+        _showBanner: function _showBanner(options, data) {
             var defaultOptions = {
                 // icon: 'http://icons.iconarchive.com/icons/wineass/ios7-redesign/512/Appstore-icon.png',
-                icon: 'assets/images/dine-icon.png',
-                title: 'DINE by Tasting Table',
-                description: 'Curated restaurant discovery app that makes it easy to find the perfect restaurant for any occasion.',
-                downloadAppButtonText: 'Download',
-                forgetHide: true
+                icon: ENV['default'].baseURL + 'assets/images/dine-icon.png',
+                title: "DINE by Tasting Table",
+                description: "Send yourself a link to discover your city's best restaurants",
+                downloadAppButtonText: "Download",
+                forgetHide: true,
+                mobileSticky: true,
+                showAndroid: false,
+                customCSS: '#branch-banner .content{background-color:rgba(230, 230, 230, 0.97)}'
             };
             var defaultData = {};
             var mergedOptions = Em.merge(defaultOptions, options);
@@ -1949,6 +2022,59 @@ define('dine/templates/application', ['exports'], function (exports) {
   }()));
 
 });
+define('dine/templates/city/collections/index', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    return {
+      meta: {
+        "revision": "Ember@2.0.0",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 9,
+            "column": 0
+          }
+        },
+        "moduleName": "dine/templates/city/collections/index.hbs"
+      },
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var morphs = new Array(2);
+        morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+        morphs[1] = dom.createMorphAt(fragment,2,2,contextualElement);
+        dom.insertBoundary(fragment, 0);
+        return morphs;
+      },
+      statements: [
+        ["content","restaurants-map",["loc",[null,[1,0],[1,19]]]],
+        ["inline","collections-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[3,24],[3,28]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[4,28],[4,36]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[5,28],[5,36]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[6,26],[6,32]]]]],[],[]],"resultsKey","collections","collections",["subexpr","@mut",[["get","collections",["loc",[null,[8,31],[8,42]]]]],[],[]]],["loc",[null,[3,0],[8,44]]]]
+      ],
+      locals: [],
+      templates: []
+    };
+  }()));
+
+});
 define('dine/templates/city/collections/loading', ['exports'], function (exports) {
 
   'use strict';
@@ -2058,7 +2184,7 @@ define('dine/templates/city/collections/restaurants/restaurant', ['exports'], fu
             "column": 0
           },
           "end": {
-            "line": 2,
+            "line": 3,
             "column": 0
           }
         },
@@ -2073,16 +2199,22 @@ define('dine/templates/city/collections/restaurants/restaurant', ['exports'], fu
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var morphs = new Array(1);
+        var morphs = new Array(2);
         morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+        morphs[1] = dom.createMorphAt(fragment,2,2,contextualElement);
         dom.insertBoundary(fragment, 0);
         return morphs;
       },
       statements: [
-        ["content","outlet",["loc",[null,[1,0],[1,10]]]]
+        ["inline","smart-app-banner",[],["bannerData",["subexpr","@mut",[["get","bannerData",["loc",[null,[1,30],[1,40]]]]],[],[]]],["loc",[null,[1,0],[1,42]]]],
+        ["content","outlet",["loc",[null,[2,0],[2,10]]]]
       ],
       locals: [],
       templates: []
@@ -2105,7 +2237,7 @@ define('dine/templates/city/collections/restaurants', ['exports'], function (exp
             "column": 0
           },
           "end": {
-            "line": 10,
+            "line": 11,
             "column": 0
           }
         },
@@ -2118,6 +2250,10 @@ define('dine/templates/city/collections/restaurants', ['exports'], function (exp
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n\n");
         dom.appendChild(el0, el1);
         var el1 = dom.createComment("");
@@ -2127,15 +2263,17 @@ define('dine/templates/city/collections/restaurants', ['exports'], function (exp
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var morphs = new Array(2);
+        var morphs = new Array(3);
         morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
         morphs[1] = dom.createMorphAt(fragment,2,2,contextualElement);
+        morphs[2] = dom.createMorphAt(fragment,4,4,contextualElement);
         dom.insertBoundary(fragment, 0);
         return morphs;
       },
       statements: [
-        ["inline","restaurants-map",[],["restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[1,30],[1,41]]]]],[],[]]],["loc",[null,[1,0],[1,43]]]],
-        ["inline","collection-restaurants-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[3,35],[3,39]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[4,39],[4,47]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[5,39],[5,47]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[6,37],[6,43]]]]],[],[]],"resultsKey","restaurants","restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[8,42],[8,53]]]]],[],[]],"collection",["subexpr","@mut",[["get","collection",["loc",[null,[9,41],[9,51]]]]],[],[]]],["loc",[null,[3,0],[9,53]]]]
+        ["inline","smart-app-banner",[],["bannerData",["subexpr","@mut",[["get","bannerData",["loc",[null,[1,30],[1,40]]]]],[],[]]],["loc",[null,[1,0],[1,42]]]],
+        ["inline","restaurants-map",[],["restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[2,30],[2,41]]]]],[],[]]],["loc",[null,[2,0],[2,43]]]],
+        ["inline","collection-restaurants-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[4,35],[4,39]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[5,39],[5,47]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[6,39],[6,47]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[7,37],[7,43]]]]],[],[]],"resultsKey","restaurants","restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[9,42],[9,53]]]]],[],[]],"collection",["subexpr","@mut",[["get","collection",["loc",[null,[10,41],[10,51]]]]],[],[]]],["loc",[null,[4,0],[10,53]]]]
       ],
       locals: [],
       templates: []
@@ -2158,8 +2296,8 @@ define('dine/templates/city/collections', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 9,
-            "column": 0
+            "line": 1,
+            "column": 10
           }
         },
         "moduleName": "dine/templates/city/collections.hbs"
@@ -2171,11 +2309,55 @@ define('dine/templates/city/collections', ['exports'], function (exports) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n\n");
-        dom.appendChild(el0, el1);
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var morphs = new Array(1);
+        morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+        dom.insertBoundary(fragment, 0);
+        dom.insertBoundary(fragment, null);
+        return morphs;
+      },
+      statements: [
+        ["content","outlet",["loc",[null,[1,0],[1,10]]]]
+      ],
+      locals: [],
+      templates: []
+    };
+  }()));
+
+});
+define('dine/templates/city/index', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    return {
+      meta: {
+        "revision": "Ember@2.0.0",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 7,
+            "column": 51
+          }
+        },
+        "moduleName": "dine/templates/city/index.hbs"
+      },
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
         return el0;
       },
@@ -2184,11 +2366,12 @@ define('dine/templates/city/collections', ['exports'], function (exports) {
         morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
         morphs[1] = dom.createMorphAt(fragment,2,2,contextualElement);
         dom.insertBoundary(fragment, 0);
+        dom.insertBoundary(fragment, null);
         return morphs;
       },
       statements: [
-        ["content","restaurants-map",["loc",[null,[1,0],[1,19]]]],
-        ["inline","collections-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[3,24],[3,28]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[4,28],[4,36]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[5,28],[5,36]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[6,26],[6,32]]]]],[],[]],"resultsKey","collections","collections",["subexpr","@mut",[["get","collections",["loc",[null,[8,31],[8,42]]]]],[],[]]],["loc",[null,[3,0],[8,44]]]]
+        ["content","smart-app-banner",["loc",[null,[1,0],[1,20]]]],
+        ["inline","restaurant-landing",[],["cities",["subexpr","@mut",[["get","cities",["loc",[null,[2,28],[2,34]]]]],[],[]],"neighborhoods",["subexpr","@mut",[["get","neighborhoods",["loc",[null,[3,35],[3,48]]]]],[],[]],"cuisines",["subexpr","@mut",[["get","cuisines",["loc",[null,[4,30],[4,38]]]]],[],[]],"collections",["subexpr","@mut",[["get","collections",["loc",[null,[5,33],[5,44]]]]],[],[]],"neighborhoodsAction","getNeighborhoods","cuisinesAction","getCuisines"],["loc",[null,[2,0],[7,51]]]]
       ],
       locals: [],
       templates: []
@@ -2243,6 +2426,44 @@ define('dine/templates/city/loading', ['exports'], function (exports) {
   }()));
 
 });
+define('dine/templates/city/restaurant-loading', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    return {
+      meta: {
+        "revision": "Ember@2.0.0",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 1,
+            "column": 0
+          }
+        },
+        "moduleName": "dine/templates/city/restaurant-loading.hbs"
+      },
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes() { return []; },
+      statements: [
+
+      ],
+      locals: [],
+      templates: []
+    };
+  }()));
+
+});
 define('dine/templates/city/restaurant', ['exports'], function (exports) {
 
   'use strict';
@@ -2256,11 +2477,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 32,
+                "line": 33,
                 "column": 22
               },
               "end": {
-                "line": 34,
+                "line": 35,
                 "column": 22
               }
             },
@@ -2287,7 +2508,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.mon",["loc",[null,[33,29],[33,57]]]]
+            ["content","restaurant.openHours.mon",["loc",[null,[34,29],[34,57]]]]
           ],
           locals: [],
           templates: []
@@ -2300,11 +2521,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 35,
+                "line": 36,
                 "column": 22
               },
               "end": {
-                "line": 37,
+                "line": 38,
                 "column": 22
               }
             },
@@ -2331,7 +2552,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.tue",["loc",[null,[36,29],[36,57]]]]
+            ["content","restaurant.openHours.tue",["loc",[null,[37,29],[37,57]]]]
           ],
           locals: [],
           templates: []
@@ -2344,11 +2565,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 38,
+                "line": 39,
                 "column": 22
               },
               "end": {
-                "line": 40,
+                "line": 41,
                 "column": 22
               }
             },
@@ -2375,7 +2596,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.wed",["loc",[null,[39,29],[39,57]]]]
+            ["content","restaurant.openHours.wed",["loc",[null,[40,29],[40,57]]]]
           ],
           locals: [],
           templates: []
@@ -2388,11 +2609,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 41,
+                "line": 42,
                 "column": 22
               },
               "end": {
-                "line": 43,
+                "line": 44,
                 "column": 22
               }
             },
@@ -2419,7 +2640,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.thu",["loc",[null,[42,29],[42,57]]]]
+            ["content","restaurant.openHours.thu",["loc",[null,[43,29],[43,57]]]]
           ],
           locals: [],
           templates: []
@@ -2432,11 +2653,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 44,
+                "line": 45,
                 "column": 22
               },
               "end": {
-                "line": 46,
+                "line": 47,
                 "column": 22
               }
             },
@@ -2463,7 +2684,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.fri",["loc",[null,[45,29],[45,57]]]]
+            ["content","restaurant.openHours.fri",["loc",[null,[46,29],[46,57]]]]
           ],
           locals: [],
           templates: []
@@ -2476,11 +2697,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 47,
+                "line": 48,
                 "column": 22
               },
               "end": {
-                "line": 49,
+                "line": 50,
                 "column": 22
               }
             },
@@ -2507,7 +2728,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.sat",["loc",[null,[48,29],[48,57]]]]
+            ["content","restaurant.openHours.sat",["loc",[null,[49,29],[49,57]]]]
           ],
           locals: [],
           templates: []
@@ -2520,11 +2741,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 50,
+                "line": 51,
                 "column": 22
               },
               "end": {
-                "line": 52,
+                "line": 53,
                 "column": 22
               }
             },
@@ -2551,7 +2772,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.sun",["loc",[null,[51,29],[51,57]]]]
+            ["content","restaurant.openHours.sun",["loc",[null,[52,29],[52,57]]]]
           ],
           locals: [],
           templates: []
@@ -2563,11 +2784,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 27,
+              "line": 28,
               "column": 16
             },
             "end": {
-              "line": 55,
+              "line": 56,
               "column": 16
             }
           },
@@ -2630,13 +2851,13 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","if",[["get","restaurant.openHours.mon",["loc",[null,[32,28],[32,52]]]]],[],0,null,["loc",[null,[32,22],[34,29]]]],
-          ["block","if",[["get","restaurant.openHours.tue",["loc",[null,[35,28],[35,52]]]]],[],1,null,["loc",[null,[35,22],[37,29]]]],
-          ["block","if",[["get","restaurant.openHours.wed",["loc",[null,[38,28],[38,52]]]]],[],2,null,["loc",[null,[38,22],[40,29]]]],
-          ["block","if",[["get","restaurant.openHours.thu",["loc",[null,[41,28],[41,52]]]]],[],3,null,["loc",[null,[41,22],[43,29]]]],
-          ["block","if",[["get","restaurant.openHours.fri",["loc",[null,[44,28],[44,52]]]]],[],4,null,["loc",[null,[44,22],[46,29]]]],
-          ["block","if",[["get","restaurant.openHours.sat",["loc",[null,[47,28],[47,52]]]]],[],5,null,["loc",[null,[47,22],[49,29]]]],
-          ["block","if",[["get","restaurant.openHours.sun",["loc",[null,[50,28],[50,52]]]]],[],6,null,["loc",[null,[50,22],[52,29]]]]
+          ["block","if",[["get","restaurant.openHours.mon",["loc",[null,[33,28],[33,52]]]]],[],0,null,["loc",[null,[33,22],[35,29]]]],
+          ["block","if",[["get","restaurant.openHours.tue",["loc",[null,[36,28],[36,52]]]]],[],1,null,["loc",[null,[36,22],[38,29]]]],
+          ["block","if",[["get","restaurant.openHours.wed",["loc",[null,[39,28],[39,52]]]]],[],2,null,["loc",[null,[39,22],[41,29]]]],
+          ["block","if",[["get","restaurant.openHours.thu",["loc",[null,[42,28],[42,52]]]]],[],3,null,["loc",[null,[42,22],[44,29]]]],
+          ["block","if",[["get","restaurant.openHours.fri",["loc",[null,[45,28],[45,52]]]]],[],4,null,["loc",[null,[45,22],[47,29]]]],
+          ["block","if",[["get","restaurant.openHours.sat",["loc",[null,[48,28],[48,52]]]]],[],5,null,["loc",[null,[48,22],[50,29]]]],
+          ["block","if",[["get","restaurant.openHours.sun",["loc",[null,[51,28],[51,52]]]]],[],6,null,["loc",[null,[51,22],[53,29]]]]
         ],
         locals: [],
         templates: [child0, child1, child2, child3, child4, child5, child6]
@@ -2649,11 +2870,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 62,
+              "line": 63,
               "column": 16
             },
             "end": {
-              "line": 67,
+              "line": 68,
               "column": 16
             }
           },
@@ -2687,7 +2908,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["attribute","href",["concat",[["get","restaurant.opentableLink",["loc",[null,[63,29],[63,53]]]]]]]
+          ["attribute","href",["concat",[["get","restaurant.opentableLink",["loc",[null,[64,29],[64,53]]]]]]]
         ],
         locals: [],
         templates: []
@@ -2700,11 +2921,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 67,
+              "line": 68,
               "column": 16
             },
             "end": {
-              "line": 69,
+              "line": 70,
               "column": 16
             }
           },
@@ -2734,11 +2955,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 72,
+              "line": 73,
               "column": 14
             },
             "end": {
-              "line": 76,
+              "line": 77,
               "column": 14
             }
           },
@@ -2768,7 +2989,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["attribute","href",["concat",[["get","restaurant.menuURL",["loc",[null,[73,27],[73,45]]]]]]]
+          ["attribute","href",["concat",[["get","restaurant.menuURL",["loc",[null,[74,27],[74,45]]]]]]]
         ],
         locals: [],
         templates: []
@@ -2781,11 +3002,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 135,
+              "line": 136,
               "column": 14
             },
             "end": {
-              "line": 141,
+              "line": 142,
               "column": 14
             }
           },
@@ -2834,9 +3055,9 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["content","quote.quote",["loc",[null,[138,35],[138,50]]]],
-          ["attribute","href",["concat",[["get","quote.source",["loc",[null,[139,29],[139,41]]]]]]],
-          ["content","quote.from",["loc",[null,[139,45],[139,59]]]]
+          ["content","quote.quote",["loc",[null,[139,35],[139,50]]]],
+          ["attribute","href",["concat",[["get","quote.source",["loc",[null,[140,29],[140,41]]]]]]],
+          ["content","quote.from",["loc",[null,[140,45],[140,59]]]]
         ],
         locals: ["quote"],
         templates: []
@@ -2850,11 +3071,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 152,
+                "line": 153,
                 "column": 20
               },
               "end": {
-                "line": 154,
+                "line": 155,
                 "column": 20
               }
             },
@@ -2881,7 +3102,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","tag",["loc",[null,[153,26],[153,33]]]]
+            ["content","tag",["loc",[null,[154,26],[154,33]]]]
           ],
           locals: ["tag"],
           templates: []
@@ -2893,11 +3114,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 145,
+              "line": 146,
               "column": 14
             },
             "end": {
-              "line": 157,
+              "line": 158,
               "column": 14
             }
           },
@@ -2942,7 +3163,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","each",[["get","tags",["loc",[null,[152,28],[152,32]]]]],[],0,null,["loc",[null,[152,20],[154,29]]]]
+          ["block","each",[["get","tags",["loc",[null,[153,28],[153,32]]]]],[],0,null,["loc",[null,[153,20],[155,29]]]]
         ],
         locals: [],
         templates: [child0]
@@ -2956,11 +3177,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 166,
+                "line": 167,
                 "column": 20
               },
               "end": {
-                "line": 168,
+                "line": 169,
                 "column": 20
               }
             },
@@ -2987,7 +3208,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","dish",["loc",[null,[167,26],[167,34]]]]
+            ["content","dish",["loc",[null,[168,26],[168,34]]]]
           ],
           locals: ["dish"],
           templates: []
@@ -2999,11 +3220,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 159,
+              "line": 160,
               "column": 14
             },
             "end": {
-              "line": 171,
+              "line": 172,
               "column": 14
             }
           },
@@ -3048,7 +3269,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","each",[["get","dishes",["loc",[null,[166,28],[166,34]]]]],[],0,null,["loc",[null,[166,20],[168,29]]]]
+          ["block","each",[["get","dishes",["loc",[null,[167,28],[167,34]]]]],[],0,null,["loc",[null,[167,20],[169,29]]]]
         ],
         locals: [],
         templates: [child0]
@@ -3062,11 +3283,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 213,
+                "line": 214,
                 "column": 16
               },
               "end": {
-                "line": 215,
+                "line": 216,
                 "column": 16
               }
             },
@@ -3093,8 +3314,8 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["attribute","src",["concat",[["get","image.url",["loc",[null,[214,30],[214,39]]]]]]],
-            ["attribute","alt",["concat",[["get","image.source",["loc",[null,[214,50],[214,62]]]]]]]
+            ["attribute","src",["concat",[["get","image.url",["loc",[null,[215,30],[215,39]]]]]]],
+            ["attribute","alt",["concat",[["get","image.source",["loc",[null,[215,50],[215,62]]]]]]]
           ],
           locals: ["image"],
           templates: []
@@ -3106,11 +3327,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 185,
+              "line": 186,
               "column": 10
             },
             "end": {
-              "line": 226,
+              "line": 227,
               "column": 10
             }
           },
@@ -3263,9 +3484,9 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","each",[["get","restaurant.imagesArray",["loc",[null,[213,24],[213,46]]]]],[],0,null,["loc",[null,[213,16],[215,25]]]],
-          ["attribute","href",["concat",["https://instagram.com/",["get","instagramHandle",["loc",[null,[220,51],[220,66]]]]]]],
-          ["content","instagramHandle",["loc",[null,[221,21],[221,40]]]]
+          ["block","each",[["get","restaurant.imagesArray",["loc",[null,[214,24],[214,46]]]]],[],0,null,["loc",[null,[214,16],[216,25]]]],
+          ["attribute","href",["concat",["https://instagram.com/",["get","instagramHandle",["loc",[null,[221,51],[221,66]]]]]]],
+          ["content","instagramHandle",["loc",[null,[222,21],[222,40]]]]
         ],
         locals: [],
         templates: [child0]
@@ -3281,7 +3502,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 232,
+            "line": 233,
             "column": 0
           }
         },
@@ -3292,6 +3513,10 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
       hasRendered: false,
       buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
         var el1 = dom.createElement("header");
         dom.setAttribute(el1,"class","article-section-header restaurant absolute-share");
         var el2 = dom.createTextNode("\n  ");
@@ -3709,50 +3934,53 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var element8 = dom.childAt(fragment, [0]);
+        var element8 = dom.childAt(fragment, [2]);
         var element9 = dom.childAt(element8, [1, 1, 1, 1, 1]);
         var element10 = dom.childAt(element9, [1]);
         var element11 = dom.childAt(element10, [1]);
         var element12 = dom.childAt(element10, [5]);
         var element13 = dom.childAt(element12, [1, 1]);
         var element14 = dom.childAt(element9, [3]);
-        var element15 = dom.childAt(fragment, [2, 1, 1, 1]);
+        var element15 = dom.childAt(fragment, [4, 1, 1, 1]);
         var element16 = dom.childAt(element15, [1, 3]);
         var element17 = dom.childAt(element16, [3]);
-        var morphs = new Array(15);
-        morphs[0] = dom.createMorphAt(element11,1,1);
-        morphs[1] = dom.createMorphAt(dom.childAt(element11, [3]),1,1);
-        morphs[2] = dom.createMorphAt(dom.childAt(element10, [3]),0,0);
-        morphs[3] = dom.createMorphAt(element13,1,1);
-        morphs[4] = dom.createMorphAt(element13,4,4);
-        morphs[5] = dom.createMorphAt(element13,6,6);
-        morphs[6] = dom.createMorphAt(element13,9,9);
-        morphs[7] = dom.createMorphAt(element12,3,3);
-        morphs[8] = dom.createMorphAt(dom.childAt(element14, [1]),1,1);
-        morphs[9] = dom.createMorphAt(element14,3,3);
-        morphs[10] = dom.createMorphAt(dom.childAt(element8, [5]),1,1);
-        morphs[11] = dom.createMorphAt(dom.childAt(element16, [1]),3,3);
-        morphs[12] = dom.createMorphAt(element17,1,1);
-        morphs[13] = dom.createMorphAt(element17,3,3);
-        morphs[14] = dom.createMorphAt(dom.childAt(element15, [3]),7,7);
+        var morphs = new Array(16);
+        morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+        morphs[1] = dom.createMorphAt(element11,1,1);
+        morphs[2] = dom.createMorphAt(dom.childAt(element11, [3]),1,1);
+        morphs[3] = dom.createMorphAt(dom.childAt(element10, [3]),0,0);
+        morphs[4] = dom.createMorphAt(element13,1,1);
+        morphs[5] = dom.createMorphAt(element13,4,4);
+        morphs[6] = dom.createMorphAt(element13,6,6);
+        morphs[7] = dom.createMorphAt(element13,9,9);
+        morphs[8] = dom.createMorphAt(element12,3,3);
+        morphs[9] = dom.createMorphAt(dom.childAt(element14, [1]),1,1);
+        morphs[10] = dom.createMorphAt(element14,3,3);
+        morphs[11] = dom.createMorphAt(dom.childAt(element8, [5]),1,1);
+        morphs[12] = dom.createMorphAt(dom.childAt(element16, [1]),3,3);
+        morphs[13] = dom.createMorphAt(element17,1,1);
+        morphs[14] = dom.createMorphAt(element17,3,3);
+        morphs[15] = dom.createMorphAt(dom.childAt(element15, [3]),7,7);
+        dom.insertBoundary(fragment, 0);
         return morphs;
       },
       statements: [
-        ["content","restaurant.cuisine",["loc",[null,[9,16],[9,38]]]],
-        ["content","restaurant.priceRange",["loc",[null,[11,18],[11,43]]]],
-        ["content","restaurant.title",["loc",[null,[15,18],[15,38]]]],
-        ["content","restaurant.address",["loc",[null,[20,20],[20,42]]]],
-        ["content","restaurant.district",["loc",[null,[21,20],[21,43]]]],
-        ["content","restaurant.zip",["loc",[null,[22,20],[22,38]]]],
-        ["content","restaurant.phone",["loc",[null,[23,20],[23,40]]]],
-        ["block","if",[["get","hasOpenHours",["loc",[null,[27,22],[27,34]]]]],[],0,null,["loc",[null,[27,16],[55,23]]]],
-        ["block","if",[["get","restaurant.opentableLink",["loc",[null,[62,22],[62,46]]]]],[],1,2,["loc",[null,[62,16],[69,23]]]],
-        ["block","if",[["get","restaurant.menuURL",["loc",[null,[72,20],[72,38]]]]],[],3,null,["loc",[null,[72,14],[76,21]]]],
-        ["inline","restaurant-map",[],["entries",["subexpr","@mut",[["get","mapEntries",["loc",[null,[113,29],[113,39]]]]],[],[]],"offset",true],["loc",[null,[113,4],[113,53]]]],
-        ["block","each",[["get","restaurant.quotes",["loc",[null,[135,22],[135,39]]]]],[],4,null,["loc",[null,[135,14],[141,23]]]],
-        ["block","if",[["get","tags.length",["loc",[null,[145,20],[145,31]]]]],[],5,null,["loc",[null,[145,14],[157,21]]]],
-        ["block","if",[["get","dishes.length",["loc",[null,[159,20],[159,33]]]]],[],6,null,["loc",[null,[159,14],[171,21]]]],
-        ["block","if",[["get","restaurant.imagesArray.length",["loc",[null,[185,16],[185,45]]]]],[],7,null,["loc",[null,[185,10],[226,17]]]]
+        ["inline","smart-app-banner",[],["bannerData",["subexpr","@mut",[["get","bannerData",["loc",[null,[1,30],[1,40]]]]],[],[]]],["loc",[null,[1,0],[1,42]]]],
+        ["content","restaurant.cuisine",["loc",[null,[10,16],[10,38]]]],
+        ["content","restaurant.priceRange",["loc",[null,[12,18],[12,43]]]],
+        ["content","restaurant.title",["loc",[null,[16,18],[16,38]]]],
+        ["content","restaurant.address",["loc",[null,[21,20],[21,42]]]],
+        ["content","restaurant.district",["loc",[null,[22,20],[22,43]]]],
+        ["content","restaurant.zip",["loc",[null,[23,20],[23,38]]]],
+        ["content","restaurant.phone",["loc",[null,[24,20],[24,40]]]],
+        ["block","if",[["get","hasOpenHours",["loc",[null,[28,22],[28,34]]]]],[],0,null,["loc",[null,[28,16],[56,23]]]],
+        ["block","if",[["get","restaurant.opentableLink",["loc",[null,[63,22],[63,46]]]]],[],1,2,["loc",[null,[63,16],[70,23]]]],
+        ["block","if",[["get","restaurant.menuURL",["loc",[null,[73,20],[73,38]]]]],[],3,null,["loc",[null,[73,14],[77,21]]]],
+        ["inline","restaurant-map",[],["entries",["subexpr","@mut",[["get","mapEntries",["loc",[null,[114,29],[114,39]]]]],[],[]],"offset",true],["loc",[null,[114,4],[114,53]]]],
+        ["block","each",[["get","restaurant.quotes",["loc",[null,[136,22],[136,39]]]]],[],4,null,["loc",[null,[136,14],[142,23]]]],
+        ["block","if",[["get","tags.length",["loc",[null,[146,20],[146,31]]]]],[],5,null,["loc",[null,[146,14],[158,21]]]],
+        ["block","if",[["get","dishes.length",["loc",[null,[160,20],[160,33]]]]],[],6,null,["loc",[null,[160,14],[172,21]]]],
+        ["block","if",[["get","restaurant.imagesArray.length",["loc",[null,[186,16],[186,45]]]]],[],7,null,["loc",[null,[186,10],[227,17]]]]
       ],
       locals: [],
       templates: [child0, child1, child2, child3, child4, child5, child6, child7]
@@ -3775,7 +4003,7 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 17,
+            "line": 18,
             "column": 0
           }
         },
@@ -3788,6 +4016,10 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n\n");
         dom.appendChild(el0, el1);
         var el1 = dom.createComment("");
@@ -3797,15 +4029,17 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var morphs = new Array(2);
+        var morphs = new Array(3);
         morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
         morphs[1] = dom.createMorphAt(fragment,2,2,contextualElement);
+        morphs[2] = dom.createMorphAt(fragment,4,4,contextualElement);
         dom.insertBoundary(fragment, 0);
         return morphs;
       },
       statements: [
-        ["inline","restaurants-map",[],["restaurants",["subexpr","@mut",[["get","restaurantsForMap",["loc",[null,[1,30],[1,47]]]]],[],[]]],["loc",[null,[1,0],[1,49]]]],
-        ["inline","restaurants-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[3,24],[3,28]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[4,28],[4,36]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[5,28],[5,36]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[6,26],[6,32]]]]],[],[]],"restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[7,31],[7,42]]]]],[],[]],"neighborhoodLabel",["subexpr","@mut",[["get","neighborhoodLabel",["loc",[null,[8,37],[8,54]]]]],[],[]],"neighborhoodSlug",["subexpr","@mut",[["get","neighborhoodSlug",["loc",[null,[9,36],[9,52]]]]],[],[]],"neighborhoods",["subexpr","@mut",[["get","neighborhoods",["loc",[null,[10,33],[10,46]]]]],[],[]],"cuisineLabel",["subexpr","@mut",[["get","cuisineLabel",["loc",[null,[11,32],[11,44]]]]],[],[]],"cuisineSlug",["subexpr","@mut",[["get","cuisineSlug",["loc",[null,[12,31],[12,42]]]]],[],[]],"cuisines",["subexpr","@mut",[["get","cuisines",["loc",[null,[13,28],[13,36]]]]],[],[]],"featureLabel",["subexpr","@mut",[["get","featureLabel",["loc",[null,[14,32],[14,44]]]]],[],[]],"featureSlug",["subexpr","@mut",[["get","featureSlug",["loc",[null,[15,31],[15,42]]]]],[],[]],"features",["subexpr","@mut",[["get","features",["loc",[null,[16,28],[16,36]]]]],[],[]]],["loc",[null,[3,0],[16,38]]]]
+        ["content","smart-app-banner",["loc",[null,[1,0],[1,20]]]],
+        ["inline","restaurants-map",[],["restaurants",["subexpr","@mut",[["get","restaurantsForMap",["loc",[null,[2,30],[2,47]]]]],[],[]]],["loc",[null,[2,0],[2,49]]]],
+        ["inline","restaurants-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[4,24],[4,28]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[5,28],[5,36]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[6,28],[6,36]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[7,26],[7,32]]]]],[],[]],"restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[8,31],[8,42]]]]],[],[]],"neighborhoodLabel",["subexpr","@mut",[["get","neighborhoodLabel",["loc",[null,[9,37],[9,54]]]]],[],[]],"neighborhoodSlug",["subexpr","@mut",[["get","neighborhoodSlug",["loc",[null,[10,36],[10,52]]]]],[],[]],"neighborhoods",["subexpr","@mut",[["get","neighborhoods",["loc",[null,[11,33],[11,46]]]]],[],[]],"cuisineLabel",["subexpr","@mut",[["get","cuisineLabel",["loc",[null,[12,32],[12,44]]]]],[],[]],"cuisineSlug",["subexpr","@mut",[["get","cuisineSlug",["loc",[null,[13,31],[13,42]]]]],[],[]],"cuisines",["subexpr","@mut",[["get","cuisines",["loc",[null,[14,28],[14,36]]]]],[],[]],"featureLabel",["subexpr","@mut",[["get","featureLabel",["loc",[null,[15,32],[15,44]]]]],[],[]],"featureSlug",["subexpr","@mut",[["get","featureSlug",["loc",[null,[16,31],[16,42]]]]],[],[]],"features",["subexpr","@mut",[["get","features",["loc",[null,[17,28],[17,36]]]]],[],[]]],["loc",[null,[4,0],[17,38]]]]
       ],
       locals: [],
       templates: []
@@ -3828,7 +4062,7 @@ define('dine/templates/city', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 8,
+            "line": 2,
             "column": 0
           }
         },
@@ -3843,22 +4077,16 @@ define('dine/templates/city', ['exports'], function (exports) {
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
-        var el1 = dom.createComment("");
-        dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
-        dom.appendChild(el0, el1);
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var morphs = new Array(2);
+        var morphs = new Array(1);
         morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
-        morphs[1] = dom.createMorphAt(fragment,2,2,contextualElement);
         dom.insertBoundary(fragment, 0);
         return morphs;
       },
       statements: [
-        ["content","smart-app-banner",["loc",[null,[1,0],[1,20]]]],
-        ["inline","restaurant-landing",[],["cities",["subexpr","@mut",[["get","cities",["loc",[null,[2,28],[2,34]]]]],[],[]],"neighborhoods",["subexpr","@mut",[["get","neighborhoods",["loc",[null,[3,35],[3,48]]]]],[],[]],"cuisines",["subexpr","@mut",[["get","cuisines",["loc",[null,[4,30],[4,38]]]]],[],[]],"collections",["subexpr","@mut",[["get","collections",["loc",[null,[5,33],[5,44]]]]],[],[]],"neighborhoodsAction","getNeighborhoods","cuisinesAction","getCuisines"],["loc",[null,[2,0],[7,51]]]]
+        ["content","outlet",["loc",[null,[1,0],[1,10]]]]
       ],
       locals: [],
       templates: []
@@ -8346,7 +8574,7 @@ define('dine/templates/updates/city', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 2,
+            "line": 3,
             "column": 0
           }
         },
@@ -8361,16 +8589,22 @@ define('dine/templates/updates/city', ['exports'], function (exports) {
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var morphs = new Array(1);
+        var morphs = new Array(2);
         morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+        morphs[1] = dom.createMorphAt(fragment,2,2,contextualElement);
         dom.insertBoundary(fragment, 0);
         return morphs;
       },
       statements: [
-        ["inline","updates-feed",[],["updates",["subexpr","@mut",[["get","model",["loc",[null,[1,23],[1,28]]]]],[],[]]],["loc",[null,[1,0],[1,30]]]]
+        ["content","smart-app-banner",["loc",[null,[1,0],[1,20]]]],
+        ["inline","updates-feed",[],["updates",["subexpr","@mut",[["get","model",["loc",[null,[2,23],[2,28]]]]],[],[]]],["loc",[null,[2,0],[2,30]]]]
       ],
       locals: [],
       templates: []
@@ -8391,11 +8625,11 @@ define('dine/templates/updates', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 8,
+                "line": 9,
                 "column": 14
               },
               "end": {
-                "line": 10,
+                "line": 11,
                 "column": 14
               }
             },
@@ -8420,7 +8654,7 @@ define('dine/templates/updates', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","city.title",["loc",[null,[9,16],[9,30]]]]
+            ["content","city.title",["loc",[null,[10,16],[10,30]]]]
           ],
           locals: [],
           templates: []
@@ -8432,11 +8666,11 @@ define('dine/templates/updates', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 6,
+              "line": 7,
               "column": 10
             },
             "end": {
-              "line": 12,
+              "line": 13,
               "column": 10
             }
           },
@@ -8467,7 +8701,7 @@ define('dine/templates/updates', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","link-to",["updates.city",["get","city.slug",["loc",[null,[8,40],[8,49]]]]],[],0,null,["loc",[null,[8,14],[10,26]]]]
+          ["block","link-to",["updates.city",["get","city.slug",["loc",[null,[9,40],[9,49]]]]],[],0,null,["loc",[null,[9,14],[11,26]]]]
         ],
         locals: ["city"],
         templates: [child0]
@@ -8483,7 +8717,7 @@ define('dine/templates/updates', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 18,
+            "line": 19,
             "column": 0
           }
         },
@@ -8494,6 +8728,10 @@ define('dine/templates/updates', ['exports'], function (exports) {
       hasRendered: false,
       buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
         var el1 = dom.createElement("div");
         dom.setAttribute(el1,"class","row");
         var el2 = dom.createTextNode("\n  ");
@@ -8535,12 +8773,15 @@ define('dine/templates/updates', ['exports'], function (exports) {
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var morphs = new Array(1);
-        morphs[0] = dom.createMorphAt(dom.childAt(fragment, [0, 1, 1, 1, 1]),1,1);
+        var morphs = new Array(2);
+        morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+        morphs[1] = dom.createMorphAt(dom.childAt(fragment, [2, 1, 1, 1, 1]),1,1);
+        dom.insertBoundary(fragment, 0);
         return morphs;
       },
       statements: [
-        ["block","each",[["get","model",["loc",[null,[6,18],[6,23]]]]],[],0,null,["loc",[null,[6,10],[12,19]]]]
+        ["content","smart-app-banner",["loc",[null,[1,0],[1,20]]]],
+        ["block","each",[["get","model",["loc",[null,[7,18],[7,23]]]]],[],0,null,["loc",[null,[7,10],[13,19]]]]
       ],
       locals: [],
       templates: [child0]
@@ -8687,7 +8928,7 @@ define('dine/tests/components/smart-app-banner.jshint', function () {
   QUnit.module('JSHint - components');
   QUnit.test('components/smart-app-banner.js should pass jshint', function(assert) { 
     assert.expect(1);
-    assert.ok(true, 'components/smart-app-banner.js should pass jshint.'); 
+    assert.ok(false, 'components/smart-app-banner.js should pass jshint.\ncomponents/smart-app-banner.js: line 21, col 13, \'self\' is defined but never used.\n\n1 error'); 
   });
 
 });
@@ -8699,6 +8940,17 @@ define('dine/tests/components/updates-feed.jshint', function () {
   QUnit.test('components/updates-feed.js should pass jshint', function(assert) { 
     assert.expect(1);
     assert.ok(true, 'components/updates-feed.js should pass jshint.'); 
+  });
+
+});
+define('dine/tests/controllers/city/index.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - controllers/city');
+  QUnit.test('controllers/city/index.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'controllers/city/index.js should pass jshint.'); 
   });
 
 });
@@ -10721,6 +10973,17 @@ define('dine/tests/router.jshint', function () {
   });
 
 });
+define('dine/tests/routes/city/collections/index.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - routes/city/collections');
+  QUnit.test('routes/city/collections/index.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(false, 'routes/city/collections/index.js should pass jshint.\nroutes/city/collections/index.js: line 38, col 53, \'reject\' is defined but never used.\nroutes/city/collections/index.js: line 51, col 19, \'params\' is defined but never used.\nroutes/city/collections/index.js: line 48, col 7, \'reject\' is not defined.\nroutes/city/collections/index.js: line 61, col 7, \'reject\' is not defined.\n\n4 errors'); 
+  });
+
+});
 define('dine/tests/routes/city/collections/restaurants/restaurant.jshint', function () {
 
   'use strict';
@@ -10750,7 +11013,18 @@ define('dine/tests/routes/city/collections.jshint', function () {
   QUnit.module('JSHint - routes/city');
   QUnit.test('routes/city/collections.js should pass jshint', function(assert) { 
     assert.expect(1);
-    assert.ok(false, 'routes/city/collections.js should pass jshint.\nroutes/city/collections.js: line 38, col 53, \'reject\' is defined but never used.\nroutes/city/collections.js: line 51, col 19, \'params\' is defined but never used.\nroutes/city/collections.js: line 48, col 7, \'reject\' is not defined.\nroutes/city/collections.js: line 61, col 7, \'reject\' is not defined.\n\n4 errors'); 
+    assert.ok(true, 'routes/city/collections.js should pass jshint.'); 
+  });
+
+});
+define('dine/tests/routes/city/index.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - routes/city');
+  QUnit.test('routes/city/index.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(false, 'routes/city/index.js should pass jshint.\nroutes/city/index.js: line 1, col 8, \'Ember\' is defined but never used.\n\n1 error'); 
   });
 
 });
@@ -10838,7 +11112,7 @@ define('dine/tests/services/branch-metrics.jshint', function () {
   QUnit.module('JSHint - services');
   QUnit.test('services/branch-metrics.js should pass jshint', function(assert) { 
     assert.expect(1);
-    assert.ok(false, 'services/branch-metrics.js should pass jshint.\nservices/branch-metrics.js: line 17, col 77, Expected \'{\' and instead saw \'c\'.\nservices/branch-metrics.js: line 17, col 239, Missing semicolon.\nservices/branch-metrics.js: line 17, col 331, Missing semicolon.\nservices/branch-metrics.js: line 17, col 332, Missing semicolon.\nservices/branch-metrics.js: line 20, col 63, \'data\' is defined but never used.\nservices/branch-metrics.js: line 20, col 58, \'err\' is defined but never used.\nservices/branch-metrics.js: line 20, col 9, \'branch\' is not defined.\nservices/branch-metrics.js: line 22, col 27, \'branch\' is not defined.\nservices/branch-metrics.js: line 36, col 9, \'branch\' is not defined.\n\n9 errors'); 
+    assert.ok(false, 'services/branch-metrics.js should pass jshint.\nservices/branch-metrics.js: line 17, col 77, Expected \'{\' and instead saw \'c\'.\nservices/branch-metrics.js: line 17, col 239, Missing semicolon.\nservices/branch-metrics.js: line 17, col 331, Missing semicolon.\nservices/branch-metrics.js: line 17, col 332, Missing semicolon.\nservices/branch-metrics.js: line 20, col 63, \'data\' is defined but never used.\nservices/branch-metrics.js: line 20, col 58, \'err\' is defined but never used.\nservices/branch-metrics.js: line 40, col 47, \'event\' is defined but never used.\nservices/branch-metrics.js: line 20, col 9, \'branch\' is not defined.\nservices/branch-metrics.js: line 21, col 31, \'branch\' is not defined.\nservices/branch-metrics.js: line 23, col 27, \'branch\' is not defined.\nservices/branch-metrics.js: line 45, col 9, \'branch\' is not defined.\nservices/branch-metrics.js: line 62, col 13, \'branch\' is not defined.\n\n12 errors'); 
   });
 
 });
@@ -10879,6 +11153,33 @@ define('dine/tests/test-helper.jshint', function () {
   QUnit.test('test-helper.js should pass jshint', function(assert) { 
     assert.expect(1);
     assert.ok(true, 'test-helper.js should pass jshint.'); 
+  });
+
+});
+define('dine/tests/unit/controllers/city/index-test', ['ember-qunit'], function (ember_qunit) {
+
+  'use strict';
+
+  ember_qunit.moduleFor('controller:city/index', {
+    // Specify the other units that are required for this test.
+    // needs: ['controller:foo']
+  });
+
+  // Replace this with your real tests.
+  ember_qunit.test('it exists', function (assert) {
+    var controller = this.subject();
+    assert.ok(controller);
+  });
+
+});
+define('dine/tests/unit/controllers/city/index-test.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - unit/controllers/city');
+  QUnit.test('unit/controllers/city/index-test.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/city/index-test.js should pass jshint.'); 
   });
 
 });
@@ -11063,6 +11364,32 @@ define('dine/tests/unit/initializers/constants-test.jshint', function () {
   });
 
 });
+define('dine/tests/unit/routes/city/collections/index-test', ['ember-qunit'], function (ember_qunit) {
+
+  'use strict';
+
+  ember_qunit.moduleFor('route:city/collections/index', 'Unit | Route | city/collections/index', {
+    // Specify the other units that are required for this test.
+    // needs: ['controller:foo']
+  });
+
+  ember_qunit.test('it exists', function (assert) {
+    var route = this.subject();
+    assert.ok(route);
+  });
+
+});
+define('dine/tests/unit/routes/city/collections/index-test.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - unit/routes/city/collections');
+  QUnit.test('unit/routes/city/collections/index-test.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/city/collections/index-test.js should pass jshint.'); 
+  });
+
+});
 define('dine/tests/unit/routes/city/collections/restaurants/restaurant-test', ['ember-qunit'], function (ember_qunit) {
 
   'use strict';
@@ -11138,6 +11465,32 @@ define('dine/tests/unit/routes/city/collections-test.jshint', function () {
   QUnit.test('unit/routes/city/collections-test.js should pass jshint', function(assert) { 
     assert.expect(1);
     assert.ok(true, 'unit/routes/city/collections-test.js should pass jshint.'); 
+  });
+
+});
+define('dine/tests/unit/routes/city/index-test', ['ember-qunit'], function (ember_qunit) {
+
+  'use strict';
+
+  ember_qunit.moduleFor('route:city/index', 'Unit | Route | city/index', {
+    // Specify the other units that are required for this test.
+    // needs: ['controller:foo']
+  });
+
+  ember_qunit.test('it exists', function (assert) {
+    var route = this.subject();
+    assert.ok(route);
+  });
+
+});
+define('dine/tests/unit/routes/city/index-test.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - unit/routes/city');
+  QUnit.test('unit/routes/city/index-test.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'unit/routes/city/index-test.js should pass jshint.'); 
   });
 
 });
