@@ -1231,6 +1231,9 @@ define('dine/routes/city/restaurants', ['exports', 'ember'], function (exports, 
       controller.set('neighborhoods', currentNeighborhoods);
       controller.set('cuisines', currentCuisines);
       controller.set('features', currentFeatures);
+    },
+    renderTemplate: function renderTemplate() {
+      this.render('city.restaurants');
     }
   });
 
@@ -11695,7 +11698,7 @@ catch(err) {
 if (runningTests) {
   require("dine/tests/test-helper");
 } else {
-  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+a0ff8693"});
+  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+9ce8b13e"});
 }
 
 /* jshint ignore:end */
