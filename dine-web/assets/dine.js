@@ -59,6 +59,18 @@ define('dine/components/collections-list', ['exports', 'dine/components/restaura
 	exports['default'] = RestaurantsListComponent['default'].extend({});
 
 });
+define('dine/components/is-mobile', ['exports', 'ember', 'dine/utils/common-utils'], function (exports, Ember, utils) {
+
+	'use strict';
+
+	exports['default'] = Ember['default'].Component.extend({
+		show: true,
+		isMobile: (function () {
+			return utils['default'].isMobile();
+		}).property()
+	});
+
+});
 define('dine/components/loading-indicator', ['exports', 'ember'], function (exports, Ember) {
 
 	'use strict';
@@ -2029,6 +2041,47 @@ define('dine/templates/city/collections/index', ['exports'], function (exports) 
   'use strict';
 
   exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 1,
+              "column": 0
+            },
+            "end": {
+              "line": 3,
+              "column": 0
+            }
+          },
+          "moduleName": "dine/templates/city/collections/index.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+          dom.insertBoundary(fragment, 0);
+          return morphs;
+        },
+        statements: [
+          ["content","restaurants-map",["loc",[null,[2,0],[2,19]]]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
     return {
       meta: {
         "revision": "Ember@2.0.0",
@@ -2039,7 +2092,7 @@ define('dine/templates/city/collections/index', ['exports'], function (exports) 
             "column": 0
           },
           "end": {
-            "line": 9,
+            "line": 11,
             "column": 0
           }
         },
@@ -2052,7 +2105,7 @@ define('dine/templates/city/collections/index', ['exports'], function (exports) 
         var el0 = dom.createDocumentFragment();
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n\n");
+        var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
@@ -2068,11 +2121,11 @@ define('dine/templates/city/collections/index', ['exports'], function (exports) 
         return morphs;
       },
       statements: [
-        ["content","restaurants-map",["loc",[null,[1,0],[1,19]]]],
-        ["inline","collections-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[3,24],[3,28]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[4,28],[4,36]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[5,28],[5,36]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[6,26],[6,32]]]]],[],[]],"resultsKey","collections","collections",["subexpr","@mut",[["get","collections",["loc",[null,[8,31],[8,42]]]]],[],[]]],["loc",[null,[3,0],[8,44]]]]
+        ["block","is-mobile",[],["show",false],0,null,["loc",[null,[1,0],[3,14]]]],
+        ["inline","collections-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[5,24],[5,28]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[6,28],[6,36]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[7,28],[7,36]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[8,26],[8,32]]]]],[],[]],"resultsKey","collections","collections",["subexpr","@mut",[["get","collections",["loc",[null,[10,31],[10,42]]]]],[],[]]],["loc",[null,[5,0],[10,44]]]]
       ],
       locals: [],
-      templates: []
+      templates: [child0]
     };
   }()));
 
@@ -2229,6 +2282,48 @@ define('dine/templates/city/collections/restaurants', ['exports'], function (exp
   'use strict';
 
   exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 2,
+              "column": 0
+            },
+            "end": {
+              "line": 4,
+              "column": 0
+            }
+          },
+          "moduleName": "dine/templates/city/collections/restaurants.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("	");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          return morphs;
+        },
+        statements: [
+          ["inline","restaurants-map",[],["restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[3,31],[3,42]]]]],[],[]]],["loc",[null,[3,1],[3,44]]]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
     return {
       meta: {
         "revision": "Ember@2.0.0",
@@ -2239,7 +2334,7 @@ define('dine/templates/city/collections/restaurants', ['exports'], function (exp
             "column": 0
           },
           "end": {
-            "line": 11,
+            "line": 13,
             "column": 0
           }
         },
@@ -2256,7 +2351,7 @@ define('dine/templates/city/collections/restaurants', ['exports'], function (exp
         dom.appendChild(el0, el1);
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n\n");
+        var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
@@ -2274,11 +2369,11 @@ define('dine/templates/city/collections/restaurants', ['exports'], function (exp
       },
       statements: [
         ["inline","smart-app-banner",[],["bannerData",["subexpr","@mut",[["get","bannerData",["loc",[null,[1,30],[1,40]]]]],[],[]]],["loc",[null,[1,0],[1,42]]]],
-        ["inline","restaurants-map",[],["restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[2,30],[2,41]]]]],[],[]]],["loc",[null,[2,0],[2,43]]]],
-        ["inline","collection-restaurants-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[4,35],[4,39]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[5,39],[5,47]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[6,39],[6,47]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[7,37],[7,43]]]]],[],[]],"resultsKey","restaurants","restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[9,42],[9,53]]]]],[],[]],"collection",["subexpr","@mut",[["get","collection",["loc",[null,[10,41],[10,51]]]]],[],[]]],["loc",[null,[4,0],[10,53]]]]
+        ["block","is-mobile",[],["show",false],0,null,["loc",[null,[2,0],[4,14]]]],
+        ["inline","collection-restaurants-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[6,35],[6,39]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[7,39],[7,47]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[8,39],[8,47]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[9,37],[9,43]]]]],[],[]],"resultsKey","restaurants","restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[11,42],[11,53]]]]],[],[]],"collection",["subexpr","@mut",[["get","collection",["loc",[null,[12,41],[12,51]]]]],[],[]]],["loc",[null,[6,0],[12,53]]]]
       ],
       locals: [],
-      templates: []
+      templates: [child0]
     };
   }()));
 
@@ -2966,11 +3061,53 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 136,
+              "line": 114,
+              "column": 4
+            },
+            "end": {
+              "line": 116,
+              "column": 4
+            }
+          },
+          "moduleName": "dine/templates/city/restaurant.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("      ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          return morphs;
+        },
+        statements: [
+          ["inline","restaurant-map",[],["entries",["subexpr","@mut",[["get","mapEntries",["loc",[null,[115,31],[115,41]]]]],[],[]],"offset",true],["loc",[null,[115,6],[115,55]]]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child5 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 138,
               "column": 14
             },
             "end": {
-              "line": 142,
+              "line": 144,
               "column": 14
             }
           },
@@ -3019,15 +3156,15 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["content","quote.quote",["loc",[null,[139,35],[139,50]]]],
-          ["attribute","href",["concat",[["get","quote.source",["loc",[null,[140,29],[140,41]]]]]]],
-          ["content","quote.from",["loc",[null,[140,45],[140,59]]]]
+          ["content","quote.quote",["loc",[null,[141,35],[141,50]]]],
+          ["attribute","href",["concat",[["get","quote.source",["loc",[null,[142,29],[142,41]]]]]]],
+          ["content","quote.from",["loc",[null,[142,45],[142,59]]]]
         ],
         locals: ["quote"],
         templates: []
       };
     }());
-    var child5 = (function() {
+    var child6 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -3035,11 +3172,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 153,
+                "line": 155,
                 "column": 20
               },
               "end": {
-                "line": 155,
+                "line": 157,
                 "column": 20
               }
             },
@@ -3066,7 +3203,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","tag",["loc",[null,[154,26],[154,33]]]]
+            ["content","tag",["loc",[null,[156,26],[156,33]]]]
           ],
           locals: ["tag"],
           templates: []
@@ -3078,11 +3215,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 146,
+              "line": 148,
               "column": 14
             },
             "end": {
-              "line": 158,
+              "line": 160,
               "column": 14
             }
           },
@@ -3127,13 +3264,13 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","each",[["get","tags",["loc",[null,[153,28],[153,32]]]]],[],0,null,["loc",[null,[153,20],[155,29]]]]
+          ["block","each",[["get","tags",["loc",[null,[155,28],[155,32]]]]],[],0,null,["loc",[null,[155,20],[157,29]]]]
         ],
         locals: [],
         templates: [child0]
       };
     }());
-    var child6 = (function() {
+    var child7 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -3141,11 +3278,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 167,
+                "line": 169,
                 "column": 20
               },
               "end": {
-                "line": 169,
+                "line": 171,
                 "column": 20
               }
             },
@@ -3172,7 +3309,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","dish",["loc",[null,[168,26],[168,34]]]]
+            ["content","dish",["loc",[null,[170,26],[170,34]]]]
           ],
           locals: ["dish"],
           templates: []
@@ -3184,11 +3321,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 160,
+              "line": 162,
               "column": 14
             },
             "end": {
-              "line": 172,
+              "line": 174,
               "column": 14
             }
           },
@@ -3233,13 +3370,13 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","each",[["get","dishes",["loc",[null,[167,28],[167,34]]]]],[],0,null,["loc",[null,[167,20],[169,29]]]]
+          ["block","each",[["get","dishes",["loc",[null,[169,28],[169,34]]]]],[],0,null,["loc",[null,[169,20],[171,29]]]]
         ],
         locals: [],
         templates: [child0]
       };
     }());
-    var child7 = (function() {
+    var child8 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -3247,11 +3384,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 214,
+                "line": 216,
                 "column": 16
               },
               "end": {
-                "line": 216,
+                "line": 218,
                 "column": 16
               }
             },
@@ -3278,8 +3415,8 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["attribute","src",["concat",[["get","image.url",["loc",[null,[215,30],[215,39]]]]]]],
-            ["attribute","alt",["concat",[["get","image.source",["loc",[null,[215,50],[215,62]]]]]]]
+            ["attribute","src",["concat",[["get","image.url",["loc",[null,[217,30],[217,39]]]]]]],
+            ["attribute","alt",["concat",[["get","image.source",["loc",[null,[217,50],[217,62]]]]]]]
           ],
           locals: ["image"],
           templates: []
@@ -3291,11 +3428,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 186,
+              "line": 188,
               "column": 10
             },
             "end": {
-              "line": 227,
+              "line": 229,
               "column": 10
             }
           },
@@ -3448,9 +3585,9 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","each",[["get","restaurant.imagesArray",["loc",[null,[214,24],[214,46]]]]],[],0,null,["loc",[null,[214,16],[216,25]]]],
-          ["attribute","href",["concat",["https://instagram.com/",["get","instagramHandle",["loc",[null,[221,51],[221,66]]]]]]],
-          ["content","instagramHandle",["loc",[null,[222,21],[222,40]]]]
+          ["block","each",[["get","restaurant.imagesArray",["loc",[null,[216,24],[216,46]]]]],[],0,null,["loc",[null,[216,16],[218,25]]]],
+          ["attribute","href",["concat",["https://instagram.com/",["get","instagramHandle",["loc",[null,[223,51],[223,66]]]]]]],
+          ["content","instagramHandle",["loc",[null,[224,21],[224,40]]]]
         ],
         locals: [],
         templates: [child0]
@@ -3466,7 +3603,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 233,
+            "line": 235,
             "column": 0
           }
         },
@@ -3733,11 +3870,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         dom.appendChild(el1, el2);
         var el2 = dom.createElement("div");
         dom.setAttribute(el2,"class","restaurant-map map js-load-map");
-        var el3 = dom.createTextNode("\n    ");
+        var el3 = dom.createTextNode("\n");
         dom.appendChild(el2, el3);
         var el3 = dom.createComment("");
         dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("\n  ");
+        var el3 = dom.createTextNode("  ");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
@@ -3940,14 +4077,14 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         ["block","if",[["get","hasOpenHours",["loc",[null,[28,22],[28,34]]]]],[],0,null,["loc",[null,[28,16],[56,23]]]],
         ["block","if",[["get","restaurant.opentableLink",["loc",[null,[63,22],[63,46]]]]],[],1,2,["loc",[null,[63,16],[70,23]]]],
         ["block","if",[["get","restaurant.menuURL",["loc",[null,[73,20],[73,38]]]]],[],3,null,["loc",[null,[73,14],[77,21]]]],
-        ["inline","restaurant-map",[],["entries",["subexpr","@mut",[["get","mapEntries",["loc",[null,[114,29],[114,39]]]]],[],[]],"offset",true],["loc",[null,[114,4],[114,53]]]],
-        ["block","each",[["get","restaurant.quotes",["loc",[null,[136,22],[136,39]]]]],[],4,null,["loc",[null,[136,14],[142,23]]]],
-        ["block","if",[["get","tags.length",["loc",[null,[146,20],[146,31]]]]],[],5,null,["loc",[null,[146,14],[158,21]]]],
-        ["block","if",[["get","dishes.length",["loc",[null,[160,20],[160,33]]]]],[],6,null,["loc",[null,[160,14],[172,21]]]],
-        ["block","if",[["get","restaurant.imagesArray.length",["loc",[null,[186,16],[186,45]]]]],[],7,null,["loc",[null,[186,10],[227,17]]]]
+        ["block","is-mobile",[],["show",false],4,null,["loc",[null,[114,4],[116,18]]]],
+        ["block","each",[["get","restaurant.quotes",["loc",[null,[138,22],[138,39]]]]],[],5,null,["loc",[null,[138,14],[144,23]]]],
+        ["block","if",[["get","tags.length",["loc",[null,[148,20],[148,31]]]]],[],6,null,["loc",[null,[148,14],[160,21]]]],
+        ["block","if",[["get","dishes.length",["loc",[null,[162,20],[162,33]]]]],[],7,null,["loc",[null,[162,14],[174,21]]]],
+        ["block","if",[["get","restaurant.imagesArray.length",["loc",[null,[188,16],[188,45]]]]],[],8,null,["loc",[null,[188,10],[229,17]]]]
       ],
       locals: [],
-      templates: [child0, child1, child2, child3, child4, child5, child6, child7]
+      templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8]
     };
   }()));
 
@@ -3957,6 +4094,47 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
   'use strict';
 
   exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 2,
+              "column": 0
+            },
+            "end": {
+              "line": 4,
+              "column": 0
+            }
+          },
+          "moduleName": "dine/templates/city/restaurants.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+          dom.insertBoundary(fragment, 0);
+          return morphs;
+        },
+        statements: [
+          ["inline","restaurants-map",[],["restaurants",["subexpr","@mut",[["get","restaurantsForMap",["loc",[null,[3,30],[3,47]]]]],[],[]]],["loc",[null,[3,0],[3,49]]]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
     return {
       meta: {
         "revision": "Ember@2.0.0",
@@ -3967,7 +4145,7 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 18,
+            "line": 20,
             "column": 0
           }
         },
@@ -3984,7 +4162,7 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
         dom.appendChild(el0, el1);
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n\n");
+        var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
@@ -4002,11 +4180,11 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
       },
       statements: [
         ["content","smart-app-banner",["loc",[null,[1,0],[1,20]]]],
-        ["inline","restaurants-map",[],["restaurants",["subexpr","@mut",[["get","restaurantsForMap",["loc",[null,[2,30],[2,47]]]]],[],[]]],["loc",[null,[2,0],[2,49]]]],
-        ["inline","restaurants-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[4,24],[4,28]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[5,28],[5,36]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[6,28],[6,36]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[7,26],[7,32]]]]],[],[]],"restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[8,31],[8,42]]]]],[],[]],"neighborhoodLabel",["subexpr","@mut",[["get","neighborhoodLabel",["loc",[null,[9,37],[9,54]]]]],[],[]],"neighborhoodSlug",["subexpr","@mut",[["get","neighborhoodSlug",["loc",[null,[10,36],[10,52]]]]],[],[]],"neighborhoods",["subexpr","@mut",[["get","neighborhoods",["loc",[null,[11,33],[11,46]]]]],[],[]],"cuisineLabel",["subexpr","@mut",[["get","cuisineLabel",["loc",[null,[12,32],[12,44]]]]],[],[]],"cuisineSlug",["subexpr","@mut",[["get","cuisineSlug",["loc",[null,[13,31],[13,42]]]]],[],[]],"cuisines",["subexpr","@mut",[["get","cuisines",["loc",[null,[14,28],[14,36]]]]],[],[]],"featureLabel",["subexpr","@mut",[["get","featureLabel",["loc",[null,[15,32],[15,44]]]]],[],[]],"featureSlug",["subexpr","@mut",[["get","featureSlug",["loc",[null,[16,31],[16,42]]]]],[],[]],"features",["subexpr","@mut",[["get","features",["loc",[null,[17,28],[17,36]]]]],[],[]]],["loc",[null,[4,0],[17,38]]]]
+        ["block","is-mobile",[],["show",false],0,null,["loc",[null,[2,0],[4,14]]]],
+        ["inline","restaurants-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[6,24],[6,28]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[7,28],[7,36]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[8,28],[8,36]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[9,26],[9,32]]]]],[],[]],"restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[10,31],[10,42]]]]],[],[]],"neighborhoodLabel",["subexpr","@mut",[["get","neighborhoodLabel",["loc",[null,[11,37],[11,54]]]]],[],[]],"neighborhoodSlug",["subexpr","@mut",[["get","neighborhoodSlug",["loc",[null,[12,36],[12,52]]]]],[],[]],"neighborhoods",["subexpr","@mut",[["get","neighborhoods",["loc",[null,[13,33],[13,46]]]]],[],[]],"cuisineLabel",["subexpr","@mut",[["get","cuisineLabel",["loc",[null,[14,32],[14,44]]]]],[],[]],"cuisineSlug",["subexpr","@mut",[["get","cuisineSlug",["loc",[null,[15,31],[15,42]]]]],[],[]],"cuisines",["subexpr","@mut",[["get","cuisines",["loc",[null,[16,28],[16,36]]]]],[],[]],"featureLabel",["subexpr","@mut",[["get","featureLabel",["loc",[null,[17,32],[17,44]]]]],[],[]],"featureSlug",["subexpr","@mut",[["get","featureSlug",["loc",[null,[18,31],[18,42]]]]],[],[]],"features",["subexpr","@mut",[["get","features",["loc",[null,[19,28],[19,36]]]]],[],[]]],["loc",[null,[6,0],[19,38]]]]
       ],
       locals: [],
-      templates: []
+      templates: [child0]
     };
   }()));
 
@@ -5181,6 +5359,216 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
         ["block","each",[["get","cities",["loc",[null,[11,18],[11,24]]]]],[],0,null,["loc",[null,[11,10],[17,19]]]],
         ["content","resultMessage",["loc",[null,[26,12],[26,29]]]],
         ["block","if",[["get","collections.length",["loc",[null,[73,12],[73,30]]]]],[],1,null,["loc",[null,[73,6],[93,13]]]]
+      ],
+      locals: [],
+      templates: [child0, child1]
+    };
+  }()));
+
+});
+define('dine/templates/components/is-mobile', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      var child0 = (function() {
+        return {
+          meta: {
+            "revision": "Ember@2.0.0",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 2,
+                "column": 1
+              },
+              "end": {
+                "line": 4,
+                "column": 1
+              }
+            },
+            "moduleName": "dine/templates/components/is-mobile.hbs"
+          },
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("		");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+            var morphs = new Array(1);
+            morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+            return morphs;
+          },
+          statements: [
+            ["content","yield",["loc",[null,[3,2],[3,11]]]]
+          ],
+          locals: [],
+          templates: []
+        };
+      }());
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 1,
+              "column": 0
+            },
+            "end": {
+              "line": 5,
+              "column": 0
+            }
+          },
+          "moduleName": "dine/templates/components/is-mobile.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+          dom.insertBoundary(fragment, 0);
+          dom.insertBoundary(fragment, null);
+          return morphs;
+        },
+        statements: [
+          ["block","if",[["get","show",["loc",[null,[2,7],[2,11]]]]],[],0,null,["loc",[null,[2,1],[4,8]]]]
+        ],
+        locals: [],
+        templates: [child0]
+      };
+    }());
+    var child1 = (function() {
+      var child0 = (function() {
+        return {
+          meta: {
+            "revision": "Ember@2.0.0",
+            "loc": {
+              "source": null,
+              "start": {
+                "line": 6,
+                "column": 1
+              },
+              "end": {
+                "line": 8,
+                "column": 1
+              }
+            },
+            "moduleName": "dine/templates/components/is-mobile.hbs"
+          },
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode("		");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createComment("");
+            dom.appendChild(el0, el1);
+            var el1 = dom.createTextNode("\n");
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+            var morphs = new Array(1);
+            morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+            return morphs;
+          },
+          statements: [
+            ["content","yield",["loc",[null,[7,2],[7,11]]]]
+          ],
+          locals: [],
+          templates: []
+        };
+      }());
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 5,
+              "column": 0
+            },
+            "end": {
+              "line": 9,
+              "column": 0
+            }
+          },
+          "moduleName": "dine/templates/components/is-mobile.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+          dom.insertBoundary(fragment, 0);
+          dom.insertBoundary(fragment, null);
+          return morphs;
+        },
+        statements: [
+          ["block","unless",[["get","show",["loc",[null,[6,11],[6,15]]]]],[],0,null,["loc",[null,[6,1],[8,12]]]]
+        ],
+        locals: [],
+        templates: [child0]
+      };
+    }());
+    return {
+      meta: {
+        "revision": "Ember@2.0.0",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 10,
+            "column": 0
+          }
+        },
+        "moduleName": "dine/templates/components/is-mobile.hbs"
+      },
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var morphs = new Array(1);
+        morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
+        dom.insertBoundary(fragment, 0);
+        dom.insertBoundary(fragment, null);
+        return morphs;
+      },
+      statements: [
+        ["block","if",[["get","isMobile",["loc",[null,[1,6],[1,14]]]]],[],0,1,["loc",[null,[1,0],[9,7]]]]
       ],
       locals: [],
       templates: [child0, child1]
@@ -8797,6 +9185,17 @@ define('dine/tests/components/collections-list.jshint', function () {
   });
 
 });
+define('dine/tests/components/is-mobile.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - components');
+  QUnit.test('components/is-mobile.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'components/is-mobile.js should pass jshint.'); 
+  });
+
+});
 define('dine/tests/components/loading-indicator.jshint', function () {
 
   'use strict';
@@ -9483,6 +9882,150 @@ define('dine/tests/integration/components/collections-list-test.jshint', functio
   QUnit.test('integration/components/collections-list-test.js should pass jshint', function(assert) { 
     assert.expect(1);
     assert.ok(true, 'integration/components/collections-list-test.js should pass jshint.'); 
+  });
+
+});
+define('dine/tests/integration/components/is-mobile-test', ['ember-qunit'], function (ember_qunit) {
+
+  'use strict';
+
+  ember_qunit.moduleForComponent('is-mobile', 'Integration | Component | is mobile', {
+    integration: true
+  });
+
+  ember_qunit.test('it renders', function (assert) {
+    assert.expect(2);
+
+    // Set any properties with this.set('myProperty', 'value');
+    // Handle any actions with this.on('myAction', function(val) { ... });
+
+    this.render(Ember.HTMLBars.template((function () {
+      return {
+        meta: {
+          'revision': 'Ember@2.0.0',
+          'loc': {
+            'source': null,
+            'start': {
+              'line': 1,
+              'column': 0
+            },
+            'end': {
+              'line': 1,
+              'column': 13
+            }
+          }
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment('');
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment, 0, 0, contextualElement);
+          dom.insertBoundary(fragment, 0);
+          dom.insertBoundary(fragment, null);
+          return morphs;
+        },
+        statements: [['content', 'is-mobile', ['loc', [null, [1, 0], [1, 13]]]]],
+        locals: [],
+        templates: []
+      };
+    })()));
+
+    assert.equal(this.$().text().trim(), '');
+
+    // Template block usage:
+    this.render(Ember.HTMLBars.template((function () {
+      var child0 = (function () {
+        return {
+          meta: {
+            'revision': 'Ember@2.0.0',
+            'loc': {
+              'source': null,
+              'start': {
+                'line': 2,
+                'column': 4
+              },
+              'end': {
+                'line': 4,
+                'column': 4
+              }
+            }
+          },
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode('      template block text\n');
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes() {
+            return [];
+          },
+          statements: [],
+          locals: [],
+          templates: []
+        };
+      })();
+
+      return {
+        meta: {
+          'revision': 'Ember@2.0.0',
+          'loc': {
+            'source': null,
+            'start': {
+              'line': 1,
+              'column': 0
+            },
+            'end': {
+              'line': 5,
+              'column': 2
+            }
+          }
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode('\n');
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment('');
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode('  ');
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
+          return morphs;
+        },
+        statements: [['block', 'is-mobile', [], [], 0, null, ['loc', [null, [2, 4], [4, 18]]]]],
+        locals: [],
+        templates: [child0]
+      };
+    })()));
+
+    assert.equal(this.$().text().trim(), 'template block text');
+  });
+
+});
+define('dine/tests/integration/components/is-mobile-test.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - integration/components');
+  QUnit.test('integration/components/is-mobile-test.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'integration/components/is-mobile-test.js should pass jshint.'); 
   });
 
 });
@@ -11670,6 +12213,48 @@ define('dine/tests/unit/services/constants-test.jshint', function () {
   });
 
 });
+define('dine/tests/utils/common-utils.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - utils');
+  QUnit.test('utils/common-utils.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'utils/common-utils.js should pass jshint.'); 
+  });
+
+});
+define('dine/utils/common-utils', ['exports'], function (exports) {
+
+    'use strict';
+
+    exports['default'] = {
+        isMobile: function isMobile() {
+            var a = navigator.userAgent || navigator.vendor || window.opera;
+            var isMobile = /android.+mobile|avantgo|bada\/|blackberry|bb.+mobile|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|symbian|treo|up\.(browser|link)|vodafone|wap|windows (ce|phone)|xda|xiino/i.test(a) || /1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|e\-|e\/|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(di|rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|xda(\-|2|g)|yas\-|your|zeto|zte\-/i.test(a.substr(0, 4));
+            return isMobile;
+        },
+        isAndroid: function isAndroid() {
+            //    var isiPad = /ipad/i.test(navigator.userAgent.toLowerCase());
+            //    var isiPhone = /iphone/i.test(navigator.userAgent.toLowerCase());
+            //    var isiPod = /ipod/i.test(navigator.userAgent.toLowerCase());
+            //    var isiDevice = /ipad|iphone|ipod/i.test(navigator.userAgent.toLowerCase());
+            //    var isBlackBerry = /blackberry/i.test(navigator.userAgent.toLowerCase());
+            //    var isWebOS = /webos/i.test(navigator.userAgent.toLowerCase());
+            //    var isWindowsPhone = /windows phone/i.test(navigator.userAgent.toLowerCase());
+            var isAndroid = /android/i.test(navigator.userAgent.toLowerCase());
+            return isAndroid;
+        },
+        scrollToElem: function scrollToElem($elem, containerSelector, duration) {
+            containerSelector = containerSelector ? containerSelector : "body,html";
+            $(containerSelector).stop(true, false);
+            $(containerSelector).animate({
+                scrollTop: $elem.offset().top
+            }, duration ? duration : 700);
+        }
+    };
+
+});
 /* jshint ignore:start */
 
 /* jshint ignore:end */
@@ -11698,7 +12283,7 @@ catch(err) {
 if (runningTests) {
   require("dine/tests/test-helper");
 } else {
-  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+9ce8b13e"});
+  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+14ab0061"});
 }
 
 /* jshint ignore:end */
