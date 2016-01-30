@@ -829,10 +829,23 @@ define('dine/initializers/overrides', ['exports'], function (exports) {
       },
       actions: {
         didTransition: function didTransition() {
-          Ember.run.scheduleOnce('afterRender', this, function () {
-            $("#dine-app").css("display", "none");
-            $("#dine-app").fadeIn(700);
+          Ember.run.scheduleOnce("afterRender", this, function () {
+            if (!Modernizr.cssanimations) {
+              // instead of opacity and animate, consider fadeIn
+              // $("#dine-app.fade").css("opacity", 0);
+              // $("#dine-app.fade").delay(100).animate({opacity:1},500);
+              $("#dine-app.fade").css("opacity", 1);
+              $("#dine-app.fade").css("display", "none");
+              $("#dine-app.fade").fadeIn(500);
+            } else {
+              $("#dine-app.fade").css("display", "block");
+              $("#dine-app.fade").removeClass("fade-in");
+              $("#dine-app.fade").addClass("fade-in");
+            }
           });
+        },
+        willTransition: function willTransition() {
+          $("#dine-app.fade").removeClass("fade-in");
         }
       }
     });
@@ -1794,7 +1807,7 @@ define('dine/services/branch-metrics', ['exports', 'ember', 'dine/config/environ
                 title: "DINE by Tasting Table",
                 description: "Send yourself a link to discover your city's best restaurants",
                 downloadAppButtonText: "Download",
-                forgetHide: true,
+                forgetHide: 1,
                 mobileSticky: true,
                 showAndroid: false,
                 customCSS: '#branch-banner .content{background-color:rgba(230, 230, 230, 0.97)}'
@@ -9493,7 +9506,7 @@ define('dine/tests/initializers/overrides.jshint', function () {
   QUnit.module('JSHint - initializers');
   QUnit.test('initializers/overrides.js should pass jshint', function(assert) { 
     assert.expect(1);
-    assert.ok(false, 'initializers/overrides.js should pass jshint.\ninitializers/overrides.js: line 3, col 7, \'Ember\' is not defined.\ninitializers/overrides.js: line 10, col 19, \'Ember\' is not defined.\n\n2 errors'); 
+    assert.ok(false, 'initializers/overrides.js should pass jshint.\ninitializers/overrides.js: line 3, col 7, \'Ember\' is not defined.\ninitializers/overrides.js: line 10, col 19, \'Ember\' is not defined.\ninitializers/overrides.js: line 11, col 18, \'Modernizr\' is not defined.\n\n3 errors'); 
   });
 
 });
@@ -12363,7 +12376,7 @@ catch(err) {
 if (runningTests) {
   require("dine/tests/test-helper");
 } else {
-  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+4eeea2d4"});
+  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+90ede9a0"});
 }
 
 /* jshint ignore:end */
