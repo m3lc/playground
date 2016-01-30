@@ -814,6 +814,36 @@ define('dine/initializers/nprogress', ['exports', 'dine/config/environment'], fu
   };
 
 });
+define('dine/initializers/overrides', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports.initialize = initialize;
+
+  function initialize() /* container, application */{
+
+    Ember.Route.reopen({
+      activate: function activate() {
+        this._super.apply(this, arguments);
+        window.scrollTo(0, 0);
+      },
+      actions: {
+        didTransition: function didTransition() {
+          Ember.run.scheduleOnce('afterRender', this, function () {
+            $("#dine-app").css("display", "none");
+            $("#dine-app").fadeIn(700);
+          });
+        }
+      }
+    });
+  }
+
+  exports['default'] = {
+    name: 'overrides',
+    initialize: initialize
+  };
+
+});
 define('dine/router', ['exports', 'ember', 'dine/config/environment'], function (exports, Ember, config) {
 
   'use strict';
@@ -3061,12 +3091,12 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 114,
-              "column": 4
+              "line": 113,
+              "column": 2
             },
             "end": {
-              "line": 116,
-              "column": 4
+              "line": 117,
+              "column": 2
             }
           },
           "moduleName": "dine/templates/city/restaurant.hbs"
@@ -3076,9 +3106,16 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         hasRendered: false,
         buildFragment: function buildFragment(dom) {
           var el0 = dom.createDocumentFragment();
-          var el1 = dom.createTextNode("      ");
+          var el1 = dom.createTextNode("    ");
           dom.appendChild(el0, el1);
-          var el1 = dom.createComment("");
+          var el1 = dom.createElement("div");
+          dom.setAttribute(el1,"class","restaurant-map map js-load-map");
+          var el2 = dom.createTextNode("\n        ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n    ");
+          dom.appendChild(el1, el2);
           dom.appendChild(el0, el1);
           var el1 = dom.createTextNode("\n");
           dom.appendChild(el0, el1);
@@ -3086,11 +3123,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         },
         buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
           var morphs = new Array(1);
-          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1]),1,1);
           return morphs;
         },
         statements: [
-          ["inline","restaurant-map",[],["entries",["subexpr","@mut",[["get","mapEntries",["loc",[null,[115,31],[115,41]]]]],[],[]],"offset",true],["loc",[null,[115,6],[115,55]]]]
+          ["inline","restaurant-map",[],["entries",["subexpr","@mut",[["get","mapEntries",["loc",[null,[115,33],[115,43]]]]],[],[]],"offset",true],["loc",[null,[115,8],[115,57]]]]
         ],
         locals: [],
         templates: []
@@ -3866,18 +3903,9 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         var el3 = dom.createTextNode("\n  ");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n  ");
-        dom.appendChild(el1, el2);
-        var el2 = dom.createElement("div");
-        dom.setAttribute(el2,"class","restaurant-map map js-load-map");
-        var el3 = dom.createTextNode("\n");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createComment("");
-        dom.appendChild(el2, el3);
-        var el3 = dom.createTextNode("  ");
-        dom.appendChild(el2, el3);
-        dom.appendChild(el1, el2);
         var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createComment("");
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n\n");
@@ -4057,7 +4085,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         morphs[8] = dom.createMorphAt(element12,3,3);
         morphs[9] = dom.createMorphAt(dom.childAt(element14, [1]),1,1);
         morphs[10] = dom.createMorphAt(element14,3,3);
-        morphs[11] = dom.createMorphAt(dom.childAt(element8, [5]),1,1);
+        morphs[11] = dom.createMorphAt(element8,5,5);
         morphs[12] = dom.createMorphAt(dom.childAt(element16, [1]),3,3);
         morphs[13] = dom.createMorphAt(element17,1,1);
         morphs[14] = dom.createMorphAt(element17,3,3);
@@ -4077,7 +4105,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         ["block","if",[["get","hasOpenHours",["loc",[null,[28,22],[28,34]]]]],[],0,null,["loc",[null,[28,16],[56,23]]]],
         ["block","if",[["get","restaurant.opentableLink",["loc",[null,[63,22],[63,46]]]]],[],1,2,["loc",[null,[63,16],[70,23]]]],
         ["block","if",[["get","restaurant.menuURL",["loc",[null,[73,20],[73,38]]]]],[],3,null,["loc",[null,[73,14],[77,21]]]],
-        ["block","is-mobile",[],["show",false],4,null,["loc",[null,[114,4],[116,18]]]],
+        ["block","is-mobile",[],["show",false],4,null,["loc",[null,[113,2],[117,16]]]],
         ["block","each",[["get","restaurant.quotes",["loc",[null,[138,22],[138,39]]]]],[],5,null,["loc",[null,[138,14],[144,23]]]],
         ["block","if",[["get","tags.length",["loc",[null,[148,20],[148,31]]]]],[],6,null,["loc",[null,[148,14],[160,21]]]],
         ["block","if",[["get","dishes.length",["loc",[null,[162,20],[162,33]]]]],[],7,null,["loc",[null,[162,14],[174,21]]]],
@@ -8292,9 +8320,11 @@ define('dine/templates/components/restaurants-map', ['exports'], function (expor
         dom.appendChild(el2, el3);
         var el3 = dom.createElement("div");
         dom.setAttribute(el3,"class","container");
-        var el4 = dom.createTextNode("\n");
+        var el4 = dom.createTextNode("\n      ");
         dom.appendChild(el3, el4);
-        var el4 = dom.createTextNode("      ");
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n      ");
         dom.appendChild(el3, el4);
         var el4 = dom.createElement("div");
         dom.setAttribute(el4,"class","notifications");
@@ -8475,11 +8505,14 @@ define('dine/templates/components/restaurants-map', ['exports'], function (expor
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var morphs = new Array(1);
-        morphs[0] = dom.createMorphAt(dom.childAt(fragment, [0, 3]),1,1);
+        var element0 = dom.childAt(fragment, [0]);
+        var morphs = new Array(2);
+        morphs[0] = dom.createMorphAt(dom.childAt(element0, [1, 1]),1,1);
+        morphs[1] = dom.createMorphAt(dom.childAt(element0, [3]),1,1);
         return morphs;
       },
       statements: [
+        ["content","restaurants-map-search",["loc",[null,[4,6],[4,32]]]],
         ["inline","restaurant-map",[],["entries",["subexpr","@mut",[["get","entries",["loc",[null,[48,29],[48,36]]]]],[],[]]],["loc",[null,[48,4],[48,38]]]]
       ],
       locals: [],
@@ -9450,6 +9483,17 @@ define('dine/tests/initializers/nprogress.jshint', function () {
   QUnit.test('initializers/nprogress.js should pass jshint', function(assert) { 
     assert.expect(1);
     assert.ok(false, 'initializers/nprogress.js should pass jshint.\ninitializers/nprogress.js: line 3, col 39, \'application\' is defined but never used.\ninitializers/nprogress.js: line 3, col 28, \'container\' is defined but never used.\ninitializers/nprogress.js: line 1, col 8, \'config\' is defined but never used.\n\n3 errors'); 
+  });
+
+});
+define('dine/tests/initializers/overrides.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - initializers');
+  QUnit.test('initializers/overrides.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(false, 'initializers/overrides.js should pass jshint.\ninitializers/overrides.js: line 3, col 7, \'Ember\' is not defined.\ninitializers/overrides.js: line 10, col 19, \'Ember\' is not defined.\n\n2 errors'); 
   });
 
 });
@@ -11871,6 +11915,42 @@ define('dine/tests/unit/initializers/constants-test.jshint', function () {
   });
 
 });
+define('dine/tests/unit/initializers/overrides-test', ['ember', 'dine/initializers/overrides', 'qunit'], function (Ember, overrides, qunit) {
+
+  'use strict';
+
+  var registry, application;
+
+  qunit.module('Unit | Initializer | overrides', {
+    beforeEach: function beforeEach() {
+      Ember['default'].run(function () {
+        application = Ember['default'].Application.create();
+        registry = application.registry;
+        application.deferReadiness();
+      });
+    }
+  });
+
+  // Replace this with your real tests.
+  qunit.test('it works', function (assert) {
+    overrides.initialize(registry, application);
+
+    // you would normally confirm the results of the initializer here
+    assert.ok(true);
+  });
+
+});
+define('dine/tests/unit/initializers/overrides-test.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - unit/initializers');
+  QUnit.test('unit/initializers/overrides-test.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'unit/initializers/overrides-test.js should pass jshint.'); 
+  });
+
+});
 define('dine/tests/unit/routes/city/collections/index-test', ['ember-qunit'], function (ember_qunit) {
 
   'use strict';
@@ -12283,7 +12363,7 @@ catch(err) {
 if (runningTests) {
   require("dine/tests/test-helper");
 } else {
-  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+14ab0061"});
+  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+4eeea2d4"});
 }
 
 /* jshint ignore:end */

@@ -63,7 +63,7 @@
   }
 }
 
-/* Twiiter Typehead (search autocomplete) */
+/* Twitter Typehead (search autocomplete) */
 
 .twitter-typeahead {
   width: 100%;
@@ -113,4 +113,9 @@
 /*removing the default 76px added on body when showing banner*/
 body.branch-banner-is-active { 
   margin-top: 0 !important; 
+}
+
+/* style for fading in  */
+#dine-app {
+  display: none;
 }
