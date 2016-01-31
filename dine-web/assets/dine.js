@@ -288,22 +288,8 @@ define('dine/components/restaurant-map', ['exports', 'ember'], function (exports
       }
     },
     _createMarkers: function _createMarkers() {
-      var pointCnt = 0;
-      var bounds = new this.google.maps.LatLngBounds();
-      var infoHolder = [];
-
-      this.get('entries').forEach((function (entry) {
-        var point = new this.google.maps.LatLng(entry.geoLocation.latitude, entry.geoLocation.longitude);
-        // Create/Expand a boundary that encompasses all marker points
-        bounds.extend(point);
-        // Create a Marker at the this point
-        var marker = this._createEntryMarkerAtPoint(entry, point, false);
-        //Holds all of the markers for use later. Point on map, the marker , and "selector" is what we use to filter it
-        infoHolder.push([point, marker]);
-        pointCnt++;
-      }).bind(this));
-
-      this._fitPointsWithBounds(bounds, pointCnt, 16);
+      window.entryDetails = this.get("entries");
+      window.initializeArticleMap(this.map);
     },
     _createEntryMarkerAtPoint: function _createEntryMarkerAtPoint(entry, point, hide) {
       var section = entry.navSectionName;
@@ -2572,6 +2558,54 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
 
   exports['default'] = Ember.HTMLBars.template((function() {
     var child0 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 25,
+              "column": 20
+            },
+            "end": {
+              "line": 27,
+              "column": 20
+            }
+          },
+          "moduleName": "dine/templates/city/restaurant.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("                      ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("br");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("a");
+          dom.setAttribute(el1,"target","_blank");
+          var el2 = dom.createTextNode("website");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var element8 = dom.childAt(fragment, [2]);
+          var morphs = new Array(1);
+          morphs[0] = dom.createAttrMorph(element8, 'href');
+          return morphs;
+        },
+        statements: [
+          ["attribute","href",["get","restaurant.website",["loc",[null,[26,38],[26,56]]]]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child1 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -2579,11 +2613,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 33,
+                "line": 36,
                 "column": 22
               },
               "end": {
-                "line": 35,
+                "line": 38,
                 "column": 22
               }
             },
@@ -2610,7 +2644,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.mon",["loc",[null,[34,29],[34,57]]]]
+            ["content","restaurant.openHours.mon",["loc",[null,[37,29],[37,57]]]]
           ],
           locals: [],
           templates: []
@@ -2623,11 +2657,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 36,
+                "line": 39,
                 "column": 22
               },
               "end": {
-                "line": 38,
+                "line": 41,
                 "column": 22
               }
             },
@@ -2654,7 +2688,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.tue",["loc",[null,[37,29],[37,57]]]]
+            ["content","restaurant.openHours.tue",["loc",[null,[40,29],[40,57]]]]
           ],
           locals: [],
           templates: []
@@ -2667,11 +2701,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 39,
+                "line": 42,
                 "column": 22
               },
               "end": {
-                "line": 41,
+                "line": 44,
                 "column": 22
               }
             },
@@ -2698,7 +2732,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.wed",["loc",[null,[40,29],[40,57]]]]
+            ["content","restaurant.openHours.wed",["loc",[null,[43,29],[43,57]]]]
           ],
           locals: [],
           templates: []
@@ -2711,11 +2745,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 42,
+                "line": 45,
                 "column": 22
               },
               "end": {
-                "line": 44,
+                "line": 47,
                 "column": 22
               }
             },
@@ -2742,7 +2776,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.thu",["loc",[null,[43,29],[43,57]]]]
+            ["content","restaurant.openHours.thu",["loc",[null,[46,29],[46,57]]]]
           ],
           locals: [],
           templates: []
@@ -2755,11 +2789,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 45,
+                "line": 48,
                 "column": 22
               },
               "end": {
-                "line": 47,
+                "line": 50,
                 "column": 22
               }
             },
@@ -2786,7 +2820,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.fri",["loc",[null,[46,29],[46,57]]]]
+            ["content","restaurant.openHours.fri",["loc",[null,[49,29],[49,57]]]]
           ],
           locals: [],
           templates: []
@@ -2799,11 +2833,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 48,
+                "line": 51,
                 "column": 22
               },
               "end": {
-                "line": 50,
+                "line": 53,
                 "column": 22
               }
             },
@@ -2830,7 +2864,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.sat",["loc",[null,[49,29],[49,57]]]]
+            ["content","restaurant.openHours.sat",["loc",[null,[52,29],[52,57]]]]
           ],
           locals: [],
           templates: []
@@ -2843,11 +2877,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 51,
+                "line": 54,
                 "column": 22
               },
               "end": {
-                "line": 53,
+                "line": 56,
                 "column": 22
               }
             },
@@ -2874,7 +2908,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","restaurant.openHours.sun",["loc",[null,[52,29],[52,57]]]]
+            ["content","restaurant.openHours.sun",["loc",[null,[55,29],[55,57]]]]
           ],
           locals: [],
           templates: []
@@ -2886,11 +2920,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 28,
+              "line": 31,
               "column": 16
             },
             "end": {
-              "line": 56,
+              "line": 59,
               "column": 16
             }
           },
@@ -2953,30 +2987,30 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","if",[["get","restaurant.openHours.mon",["loc",[null,[33,28],[33,52]]]]],[],0,null,["loc",[null,[33,22],[35,29]]]],
-          ["block","if",[["get","restaurant.openHours.tue",["loc",[null,[36,28],[36,52]]]]],[],1,null,["loc",[null,[36,22],[38,29]]]],
-          ["block","if",[["get","restaurant.openHours.wed",["loc",[null,[39,28],[39,52]]]]],[],2,null,["loc",[null,[39,22],[41,29]]]],
-          ["block","if",[["get","restaurant.openHours.thu",["loc",[null,[42,28],[42,52]]]]],[],3,null,["loc",[null,[42,22],[44,29]]]],
-          ["block","if",[["get","restaurant.openHours.fri",["loc",[null,[45,28],[45,52]]]]],[],4,null,["loc",[null,[45,22],[47,29]]]],
-          ["block","if",[["get","restaurant.openHours.sat",["loc",[null,[48,28],[48,52]]]]],[],5,null,["loc",[null,[48,22],[50,29]]]],
-          ["block","if",[["get","restaurant.openHours.sun",["loc",[null,[51,28],[51,52]]]]],[],6,null,["loc",[null,[51,22],[53,29]]]]
+          ["block","if",[["get","restaurant.openHours.mon",["loc",[null,[36,28],[36,52]]]]],[],0,null,["loc",[null,[36,22],[38,29]]]],
+          ["block","if",[["get","restaurant.openHours.tue",["loc",[null,[39,28],[39,52]]]]],[],1,null,["loc",[null,[39,22],[41,29]]]],
+          ["block","if",[["get","restaurant.openHours.wed",["loc",[null,[42,28],[42,52]]]]],[],2,null,["loc",[null,[42,22],[44,29]]]],
+          ["block","if",[["get","restaurant.openHours.thu",["loc",[null,[45,28],[45,52]]]]],[],3,null,["loc",[null,[45,22],[47,29]]]],
+          ["block","if",[["get","restaurant.openHours.fri",["loc",[null,[48,28],[48,52]]]]],[],4,null,["loc",[null,[48,22],[50,29]]]],
+          ["block","if",[["get","restaurant.openHours.sat",["loc",[null,[51,28],[51,52]]]]],[],5,null,["loc",[null,[51,22],[53,29]]]],
+          ["block","if",[["get","restaurant.openHours.sun",["loc",[null,[54,28],[54,52]]]]],[],6,null,["loc",[null,[54,22],[56,29]]]]
         ],
         locals: [],
         templates: [child0, child1, child2, child3, child4, child5, child6]
       };
     }());
-    var child1 = (function() {
+    var child2 = (function() {
       return {
         meta: {
           "revision": "Ember@2.0.0",
           "loc": {
             "source": null,
             "start": {
-              "line": 63,
+              "line": 66,
               "column": 16
             },
             "end": {
-              "line": 68,
+              "line": 71,
               "column": 16
             }
           },
@@ -3010,24 +3044,24 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["attribute","href",["concat",[["get","restaurant.opentableLink",["loc",[null,[64,29],[64,53]]]]]]]
+          ["attribute","href",["concat",[["get","restaurant.opentableLink",["loc",[null,[67,29],[67,53]]]]]]]
         ],
         locals: [],
         templates: []
       };
     }());
-    var child2 = (function() {
+    var child3 = (function() {
       return {
         meta: {
           "revision": "Ember@2.0.0",
           "loc": {
             "source": null,
             "start": {
-              "line": 68,
+              "line": 71,
               "column": 16
             },
             "end": {
-              "line": 70,
+              "line": 73,
               "column": 16
             }
           },
@@ -3050,18 +3084,18 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         templates: []
       };
     }());
-    var child3 = (function() {
+    var child4 = (function() {
       return {
         meta: {
           "revision": "Ember@2.0.0",
           "loc": {
             "source": null,
             "start": {
-              "line": 73,
+              "line": 76,
               "column": 14
             },
             "end": {
-              "line": 77,
+              "line": 80,
               "column": 14
             }
           },
@@ -3091,24 +3125,24 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["attribute","href",["concat",[["get","restaurant.menuURL",["loc",[null,[74,27],[74,45]]]]]]]
+          ["attribute","href",["concat",[["get","restaurant.menuURL",["loc",[null,[77,27],[77,45]]]]]]]
         ],
         locals: [],
         templates: []
       };
     }());
-    var child4 = (function() {
+    var child5 = (function() {
       return {
         meta: {
           "revision": "Ember@2.0.0",
           "loc": {
             "source": null,
             "start": {
-              "line": 113,
+              "line": 116,
               "column": 2
             },
             "end": {
-              "line": 117,
+              "line": 120,
               "column": 2
             }
           },
@@ -3140,24 +3174,24 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","restaurant-map",[],["entries",["subexpr","@mut",[["get","mapEntries",["loc",[null,[115,33],[115,43]]]]],[],[]],"offset",true],["loc",[null,[115,8],[115,57]]]]
+          ["inline","restaurant-map",[],["entries",["subexpr","@mut",[["get","mapEntries",["loc",[null,[118,33],[118,43]]]]],[],[]],"offset",true],["loc",[null,[118,8],[118,57]]]]
         ],
         locals: [],
         templates: []
       };
     }());
-    var child5 = (function() {
+    var child6 = (function() {
       return {
         meta: {
           "revision": "Ember@2.0.0",
           "loc": {
             "source": null,
             "start": {
-              "line": 138,
+              "line": 141,
               "column": 14
             },
             "end": {
-              "line": 144,
+              "line": 147,
               "column": 14
             }
           },
@@ -3206,15 +3240,15 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["content","quote.quote",["loc",[null,[141,35],[141,50]]]],
-          ["attribute","href",["concat",[["get","quote.source",["loc",[null,[142,29],[142,41]]]]]]],
-          ["content","quote.from",["loc",[null,[142,45],[142,59]]]]
+          ["content","quote.quote",["loc",[null,[144,35],[144,50]]]],
+          ["attribute","href",["concat",[["get","quote.source",["loc",[null,[145,29],[145,41]]]]]]],
+          ["content","quote.from",["loc",[null,[145,45],[145,59]]]]
         ],
         locals: ["quote"],
         templates: []
       };
     }());
-    var child6 = (function() {
+    var child7 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -3222,11 +3256,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 155,
+                "line": 158,
                 "column": 20
               },
               "end": {
-                "line": 157,
+                "line": 160,
                 "column": 20
               }
             },
@@ -3253,7 +3287,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","tag",["loc",[null,[156,26],[156,33]]]]
+            ["content","tag",["loc",[null,[159,26],[159,33]]]]
           ],
           locals: ["tag"],
           templates: []
@@ -3265,11 +3299,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 148,
+              "line": 151,
               "column": 14
             },
             "end": {
-              "line": 160,
+              "line": 163,
               "column": 14
             }
           },
@@ -3314,13 +3348,13 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","each",[["get","tags",["loc",[null,[155,28],[155,32]]]]],[],0,null,["loc",[null,[155,20],[157,29]]]]
+          ["block","each",[["get","tags",["loc",[null,[158,28],[158,32]]]]],[],0,null,["loc",[null,[158,20],[160,29]]]]
         ],
         locals: [],
         templates: [child0]
       };
     }());
-    var child7 = (function() {
+    var child8 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -3328,11 +3362,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 169,
+                "line": 172,
                 "column": 20
               },
               "end": {
-                "line": 171,
+                "line": 174,
                 "column": 20
               }
             },
@@ -3359,7 +3393,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["content","dish",["loc",[null,[170,26],[170,34]]]]
+            ["content","dish",["loc",[null,[173,26],[173,34]]]]
           ],
           locals: ["dish"],
           templates: []
@@ -3371,11 +3405,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 162,
+              "line": 165,
               "column": 14
             },
             "end": {
-              "line": 174,
+              "line": 177,
               "column": 14
             }
           },
@@ -3420,13 +3454,13 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","each",[["get","dishes",["loc",[null,[169,28],[169,34]]]]],[],0,null,["loc",[null,[169,20],[171,29]]]]
+          ["block","each",[["get","dishes",["loc",[null,[172,28],[172,34]]]]],[],0,null,["loc",[null,[172,20],[174,29]]]]
         ],
         locals: [],
         templates: [child0]
       };
     }());
-    var child8 = (function() {
+    var child9 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -3434,11 +3468,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 216,
+                "line": 219,
                 "column": 16
               },
               "end": {
-                "line": 218,
+                "line": 221,
                 "column": 16
               }
             },
@@ -3465,8 +3499,8 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["attribute","src",["concat",[["get","image.url",["loc",[null,[217,30],[217,39]]]]]]],
-            ["attribute","alt",["concat",[["get","image.source",["loc",[null,[217,50],[217,62]]]]]]]
+            ["attribute","src",["concat",[["get","image.url",["loc",[null,[220,30],[220,39]]]]]]],
+            ["attribute","alt",["concat",[["get","image.source",["loc",[null,[220,50],[220,62]]]]]]]
           ],
           locals: ["image"],
           templates: []
@@ -3478,11 +3512,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 188,
+              "line": 191,
               "column": 10
             },
             "end": {
-              "line": 229,
+              "line": 232,
               "column": 10
             }
           },
@@ -3635,9 +3669,9 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","each",[["get","restaurant.imagesArray",["loc",[null,[216,24],[216,46]]]]],[],0,null,["loc",[null,[216,16],[218,25]]]],
-          ["attribute","href",["concat",["https://instagram.com/",["get","instagramHandle",["loc",[null,[223,51],[223,66]]]]]]],
-          ["content","instagramHandle",["loc",[null,[224,21],[224,40]]]]
+          ["block","each",[["get","restaurant.imagesArray",["loc",[null,[219,24],[219,46]]]]],[],0,null,["loc",[null,[219,16],[221,25]]]],
+          ["attribute","href",["concat",["https://instagram.com/",["get","instagramHandle",["loc",[null,[226,51],[226,66]]]]]]],
+          ["content","instagramHandle",["loc",[null,[227,21],[227,40]]]]
         ],
         locals: [],
         templates: [child0]
@@ -3653,7 +3687,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 235,
+            "line": 238,
             "column": 0
           }
         },
@@ -3752,7 +3786,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         dom.appendChild(el10, el11);
         var el11 = dom.createComment("");
         dom.appendChild(el10, el11);
-        var el11 = dom.createTextNode("\n                  ");
+        var el11 = dom.createTextNode("\n");
+        dom.appendChild(el10, el11);
+        var el11 = dom.createComment("");
+        dom.appendChild(el10, el11);
+        var el11 = dom.createTextNode("                  ");
         dom.appendChild(el10, el11);
         dom.appendChild(el9, el10);
         var el10 = dom.createTextNode("\n                ");
@@ -4076,33 +4114,34 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var element8 = dom.childAt(fragment, [2]);
-        var element9 = dom.childAt(element8, [1, 1, 1, 1, 1]);
-        var element10 = dom.childAt(element9, [1]);
+        var element9 = dom.childAt(fragment, [2]);
+        var element10 = dom.childAt(element9, [1, 1, 1, 1, 1]);
         var element11 = dom.childAt(element10, [1]);
-        var element12 = dom.childAt(element10, [5]);
-        var element13 = dom.childAt(element12, [1, 1]);
-        var element14 = dom.childAt(element9, [3]);
-        var element15 = dom.childAt(fragment, [4, 1, 1, 1]);
-        var element16 = dom.childAt(element15, [1, 3]);
-        var element17 = dom.childAt(element16, [3]);
-        var morphs = new Array(16);
+        var element12 = dom.childAt(element11, [1]);
+        var element13 = dom.childAt(element11, [5]);
+        var element14 = dom.childAt(element13, [1, 1]);
+        var element15 = dom.childAt(element10, [3]);
+        var element16 = dom.childAt(fragment, [4, 1, 1, 1]);
+        var element17 = dom.childAt(element16, [1, 3]);
+        var element18 = dom.childAt(element17, [3]);
+        var morphs = new Array(17);
         morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
-        morphs[1] = dom.createMorphAt(element11,1,1);
-        morphs[2] = dom.createMorphAt(dom.childAt(element11, [3]),1,1);
-        morphs[3] = dom.createMorphAt(dom.childAt(element10, [3]),0,0);
-        morphs[4] = dom.createMorphAt(element13,1,1);
-        morphs[5] = dom.createMorphAt(element13,4,4);
-        morphs[6] = dom.createMorphAt(element13,6,6);
-        morphs[7] = dom.createMorphAt(element13,9,9);
-        morphs[8] = dom.createMorphAt(element12,3,3);
-        morphs[9] = dom.createMorphAt(dom.childAt(element14, [1]),1,1);
-        morphs[10] = dom.createMorphAt(element14,3,3);
-        morphs[11] = dom.createMorphAt(element8,5,5);
-        morphs[12] = dom.createMorphAt(dom.childAt(element16, [1]),3,3);
-        morphs[13] = dom.createMorphAt(element17,1,1);
-        morphs[14] = dom.createMorphAt(element17,3,3);
-        morphs[15] = dom.createMorphAt(dom.childAt(element15, [3]),7,7);
+        morphs[1] = dom.createMorphAt(element12,1,1);
+        morphs[2] = dom.createMorphAt(dom.childAt(element12, [3]),1,1);
+        morphs[3] = dom.createMorphAt(dom.childAt(element11, [3]),0,0);
+        morphs[4] = dom.createMorphAt(element14,1,1);
+        morphs[5] = dom.createMorphAt(element14,4,4);
+        morphs[6] = dom.createMorphAt(element14,6,6);
+        morphs[7] = dom.createMorphAt(element14,9,9);
+        morphs[8] = dom.createMorphAt(element14,11,11);
+        morphs[9] = dom.createMorphAt(element13,3,3);
+        morphs[10] = dom.createMorphAt(dom.childAt(element15, [1]),1,1);
+        morphs[11] = dom.createMorphAt(element15,3,3);
+        morphs[12] = dom.createMorphAt(element9,5,5);
+        morphs[13] = dom.createMorphAt(dom.childAt(element17, [1]),3,3);
+        morphs[14] = dom.createMorphAt(element18,1,1);
+        morphs[15] = dom.createMorphAt(element18,3,3);
+        morphs[16] = dom.createMorphAt(dom.childAt(element16, [3]),7,7);
         dom.insertBoundary(fragment, 0);
         return morphs;
       },
@@ -4115,17 +4154,18 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         ["content","restaurant.district",["loc",[null,[22,20],[22,43]]]],
         ["content","restaurant.zip",["loc",[null,[23,20],[23,38]]]],
         ["content","restaurant.phone",["loc",[null,[24,20],[24,40]]]],
-        ["block","if",[["get","hasOpenHours",["loc",[null,[28,22],[28,34]]]]],[],0,null,["loc",[null,[28,16],[56,23]]]],
-        ["block","if",[["get","restaurant.opentableLink",["loc",[null,[63,22],[63,46]]]]],[],1,2,["loc",[null,[63,16],[70,23]]]],
-        ["block","if",[["get","restaurant.menuURL",["loc",[null,[73,20],[73,38]]]]],[],3,null,["loc",[null,[73,14],[77,21]]]],
-        ["block","is-mobile",[],["show",false],4,null,["loc",[null,[113,2],[117,16]]]],
-        ["block","each",[["get","restaurant.quotes",["loc",[null,[138,22],[138,39]]]]],[],5,null,["loc",[null,[138,14],[144,23]]]],
-        ["block","if",[["get","tags.length",["loc",[null,[148,20],[148,31]]]]],[],6,null,["loc",[null,[148,14],[160,21]]]],
-        ["block","if",[["get","dishes.length",["loc",[null,[162,20],[162,33]]]]],[],7,null,["loc",[null,[162,14],[174,21]]]],
-        ["block","if",[["get","restaurant.imagesArray.length",["loc",[null,[188,16],[188,45]]]]],[],8,null,["loc",[null,[188,10],[229,17]]]]
+        ["block","if",[["get","restaurant.website",["loc",[null,[25,26],[25,44]]]]],[],0,null,["loc",[null,[25,20],[27,27]]]],
+        ["block","if",[["get","hasOpenHours",["loc",[null,[31,22],[31,34]]]]],[],1,null,["loc",[null,[31,16],[59,23]]]],
+        ["block","if",[["get","restaurant.opentableLink",["loc",[null,[66,22],[66,46]]]]],[],2,3,["loc",[null,[66,16],[73,23]]]],
+        ["block","if",[["get","restaurant.menuURL",["loc",[null,[76,20],[76,38]]]]],[],4,null,["loc",[null,[76,14],[80,21]]]],
+        ["block","is-mobile",[],["show",false],5,null,["loc",[null,[116,2],[120,16]]]],
+        ["block","each",[["get","restaurant.quotes",["loc",[null,[141,22],[141,39]]]]],[],6,null,["loc",[null,[141,14],[147,23]]]],
+        ["block","if",[["get","tags.length",["loc",[null,[151,20],[151,31]]]]],[],7,null,["loc",[null,[151,14],[163,21]]]],
+        ["block","if",[["get","dishes.length",["loc",[null,[165,20],[165,33]]]]],[],8,null,["loc",[null,[165,14],[177,21]]]],
+        ["block","if",[["get","restaurant.imagesArray.length",["loc",[null,[191,16],[191,45]]]]],[],9,null,["loc",[null,[191,10],[232,17]]]]
       ],
       locals: [],
-      templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8]
+      templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8, child9]
     };
   }()));
 
@@ -9282,7 +9322,7 @@ define('dine/tests/components/restaurant-map.jshint', function () {
   QUnit.module('JSHint - components');
   QUnit.test('components/restaurant-map.js should pass jshint', function(assert) { 
     assert.expect(1);
-    assert.ok(false, 'components/restaurant-map.js should pass jshint.\ncomponents/restaurant-map.js: line 82, col 9, \'section\' is defined but never used.\ncomponents/restaurant-map.js: line 81, col 43, \'hide\' is defined but never used.\ncomponents/restaurant-map.js: line 91, col 26, \'google\' is not defined.\ncomponents/restaurant-map.js: line 151, col 33, \'google\' is not defined.\n\n4 errors'); 
+    assert.ok(false, 'components/restaurant-map.js should pass jshint.\ncomponents/restaurant-map.js: line 65, col 9, \'section\' is defined but never used.\ncomponents/restaurant-map.js: line 64, col 43, \'hide\' is defined but never used.\ncomponents/restaurant-map.js: line 74, col 26, \'google\' is not defined.\ncomponents/restaurant-map.js: line 134, col 33, \'google\' is not defined.\n\n4 errors'); 
   });
 
 });
@@ -12376,7 +12416,7 @@ catch(err) {
 if (runningTests) {
   require("dine/tests/test-helper");
 } else {
-  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+90ede9a0"});
+  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+31eb6422"});
 }
 
 /* jshint ignore:end */
