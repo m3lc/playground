@@ -485,7 +485,7 @@ define('dine/components/restaurants-map-search', ['exports', 'ember', 'dine/conf
             self.set("searchClient", algoliaClient);
             self.set("searchIndex", algoliaIndex);
             var params = {
-                hitsPerPage: 10,
+                hitsPerPage: 22,
                 facets: '*'
             };
             var theTypeahead = input.typeahead({
@@ -494,7 +494,7 @@ define('dine/components/restaurants-map-search', ['exports', 'ember', 'dine/conf
             }, {
                 name: 'restaurants',
                 display: 'title',
-                limit: 8,
+                limit: 20,
                 source: function source(query, syncCb, asyncCb) {
                     var cb;
                     if (typeof asyncCb === 'function') {
@@ -4410,6 +4410,67 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
         templates: []
       };
     }());
+    var child1 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 5,
+              "column": 0
+            },
+            "end": {
+              "line": 13,
+              "column": 0
+            }
+          },
+          "moduleName": "dine/templates/city/restaurants.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createElement("section");
+          dom.setAttribute(el1,"class","map-data without-map");
+          var el2 = dom.createTextNode("\n      ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("div");
+          dom.setAttribute(el2,"class","map-header");
+          var el3 = dom.createTextNode("\n            ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("div");
+          dom.setAttribute(el3,"class","container");
+          var el4 = dom.createTextNode("\n                  ");
+          dom.appendChild(el3, el4);
+          var el4 = dom.createComment("");
+          dom.appendChild(el3, el4);
+          var el4 = dom.createTextNode("\n            ");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n      ");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [0, 1, 1]),1,1);
+          return morphs;
+        },
+        statements: [
+          ["inline","restaurants-map-search",[],["searchQuery",["subexpr","@mut",[["get","searchQuery",["loc",[null,[9,55],[9,66]]]]],[],[]]],["loc",[null,[9,18],[9,68]]]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
     return {
       meta: {
         "revision": "Ember@2.0.0",
@@ -4420,7 +4481,7 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 21,
+            "line": 30,
             "column": 0
           }
         },
@@ -4437,6 +4498,8 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
         dom.appendChild(el0, el1);
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
         var el1 = dom.createComment("");
@@ -4446,20 +4509,22 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var morphs = new Array(3);
+        var morphs = new Array(4);
         morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
         morphs[1] = dom.createMorphAt(fragment,2,2,contextualElement);
-        morphs[2] = dom.createMorphAt(fragment,4,4,contextualElement);
+        morphs[2] = dom.createMorphAt(fragment,3,3,contextualElement);
+        morphs[3] = dom.createMorphAt(fragment,5,5,contextualElement);
         dom.insertBoundary(fragment, 0);
         return morphs;
       },
       statements: [
         ["content","smart-app-banner",["loc",[null,[1,0],[1,20]]]],
         ["block","is-mobile",[],["show",false],0,null,["loc",[null,[2,0],[4,14]]]],
-        ["inline","restaurants-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[6,24],[6,28]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[7,28],[7,36]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[8,28],[8,36]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[9,26],[9,32]]]]],[],[]],"restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[10,31],[10,42]]]]],[],[]],"neighborhoodLabel",["subexpr","@mut",[["get","neighborhoodLabel",["loc",[null,[11,37],[11,54]]]]],[],[]],"neighborhoodSlug",["subexpr","@mut",[["get","neighborhoodSlug",["loc",[null,[12,36],[12,52]]]]],[],[]],"neighborhoods",["subexpr","@mut",[["get","neighborhoods",["loc",[null,[13,33],[13,46]]]]],[],[]],"cuisineLabel",["subexpr","@mut",[["get","cuisineLabel",["loc",[null,[14,32],[14,44]]]]],[],[]],"cuisineSlug",["subexpr","@mut",[["get","cuisineSlug",["loc",[null,[15,31],[15,42]]]]],[],[]],"cuisines",["subexpr","@mut",[["get","cuisines",["loc",[null,[16,28],[16,36]]]]],[],[]],"featureLabel",["subexpr","@mut",[["get","featureLabel",["loc",[null,[17,32],[17,44]]]]],[],[]],"featureSlug",["subexpr","@mut",[["get","featureSlug",["loc",[null,[18,31],[18,42]]]]],[],[]],"features",["subexpr","@mut",[["get","features",["loc",[null,[19,28],[19,36]]]]],[],[]],"searchQuery",["subexpr","@mut",[["get","searchQuery",["loc",[null,[20,31],[20,42]]]]],[],[]]],["loc",[null,[6,0],[20,44]]]]
+        ["block","is-mobile",[],["show",true],1,null,["loc",[null,[5,0],[13,14]]]],
+        ["inline","restaurants-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[15,24],[15,28]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[16,28],[16,36]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[17,28],[17,36]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[18,26],[18,32]]]]],[],[]],"restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[19,31],[19,42]]]]],[],[]],"neighborhoodLabel",["subexpr","@mut",[["get","neighborhoodLabel",["loc",[null,[20,37],[20,54]]]]],[],[]],"neighborhoodSlug",["subexpr","@mut",[["get","neighborhoodSlug",["loc",[null,[21,36],[21,52]]]]],[],[]],"neighborhoods",["subexpr","@mut",[["get","neighborhoods",["loc",[null,[22,33],[22,46]]]]],[],[]],"cuisineLabel",["subexpr","@mut",[["get","cuisineLabel",["loc",[null,[23,32],[23,44]]]]],[],[]],"cuisineSlug",["subexpr","@mut",[["get","cuisineSlug",["loc",[null,[24,31],[24,42]]]]],[],[]],"cuisines",["subexpr","@mut",[["get","cuisines",["loc",[null,[25,28],[25,36]]]]],[],[]],"featureLabel",["subexpr","@mut",[["get","featureLabel",["loc",[null,[26,32],[26,44]]]]],[],[]],"featureSlug",["subexpr","@mut",[["get","featureSlug",["loc",[null,[27,31],[27,42]]]]],[],[]],"features",["subexpr","@mut",[["get","features",["loc",[null,[28,28],[28,36]]]]],[],[]],"searchQuery",["subexpr","@mut",[["get","searchQuery",["loc",[null,[29,31],[29,42]]]]],[],[]]],["loc",[null,[15,0],[29,44]]]]
       ],
       locals: [],
-      templates: [child0]
+      templates: [child0, child1]
     };
   }()));
 
@@ -7054,8 +7119,6 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
       hasRendered: false,
       buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
-        var el1 = dom.createTextNode("  ");
-        dom.appendChild(el0, el1);
         var el1 = dom.createElement("section");
         dom.setAttribute(el1,"class","hero restaurant-landing");
         var el2 = dom.createTextNode("\n  ");
@@ -7310,7 +7373,7 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         var el3 = dom.createTextNode("\n  ");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n  ");
+        var el2 = dom.createTextNode("\n");
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n\n  ");
@@ -7393,7 +7456,7 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         var el2 = dom.createTextNode("\n  ");
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n\n  ");
+        var el1 = dom.createTextNode("\n\n");
         dom.appendChild(el0, el1);
         var el1 = dom.createElement("section");
         dom.setAttribute(el1,"class","latest cards-layout cards-layout-one-column cards-layout-no-bot-pad");
@@ -7408,7 +7471,7 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         var el3 = dom.createTextNode("  ");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n  ");
+        var el2 = dom.createTextNode("\n");
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
@@ -7416,7 +7479,7 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var element6 = dom.childAt(fragment, [1, 1]);
+        var element6 = dom.childAt(fragment, [0, 1]);
         var element7 = dom.childAt(element6, [1]);
         var element8 = dom.childAt(element7, [1, 3]);
         var element9 = dom.childAt(element8, [3]);
@@ -7424,7 +7487,7 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         var element11 = dom.childAt(element8, [11]);
         var element12 = dom.childAt(element8, [13]);
         var element13 = dom.childAt(element7, [3, 3, 0]);
-        var element14 = dom.childAt(fragment, [3]);
+        var element14 = dom.childAt(fragment, [2]);
         var element15 = dom.childAt(element14, [1, 1, 1]);
         var morphs = new Array(13);
         morphs[0] = dom.createAttrMorph(element6, 'style');
@@ -7439,7 +7502,7 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         morphs[9] = dom.createMorphAt(dom.childAt(element15, [1]),1,1);
         morphs[10] = dom.createMorphAt(dom.childAt(element15, [3]),1,1);
         morphs[11] = dom.createMorphAt(dom.childAt(element14, [3, 1, 1]),1,1);
-        morphs[12] = dom.createMorphAt(dom.childAt(fragment, [5, 1]),1,1);
+        morphs[12] = dom.createMorphAt(dom.childAt(fragment, [4, 1]),1,1);
         return morphs;
       },
       statements: [
@@ -13305,7 +13368,7 @@ catch(err) {
 if (runningTests) {
   require("dine/tests/test-helper");
 } else {
-  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+31eb6422"});
+  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+7e4a7f1c"});
 }
 
 /* jshint ignore:end */

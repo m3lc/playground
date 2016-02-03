@@ -114,6 +114,11 @@
   color: #ff004c;
 }
 
+.twitter-typeahead .tt-menu {
+  max-height: 440px;
+  overflow-y: auto;
+}
+
 /* Branch Metrics - Smart App Banners */
 /*removing the default 76px added on body when showing banner*/
 body.branch-banner-is-active { 
@@ -144,6 +149,11 @@ body.branch-banner-is-active {
 @-moz-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 
+/* mods for search bar */
+.section-map-app .map-data {
+  z-index: 100;
+}
+
 /* mods for search bar in landing, will have to be replaced once properly updated in app.css */
 .section-restaurant-landing .section-map-app .map-data {
   min-height: auto;
@@ -152,6 +162,10 @@ body.branch-banner-is-active {
   position: relative;
   margin-left: auto;
   margin-right: auto;
+}
+
+.section-map-app .map-data.without-map{
+  min-height: 100px;
 }
 
 .section-restaurant-landing .section-map-app .map-data .map-header {
@@ -166,6 +180,7 @@ body.branch-banner-is-active {
   position: relative;
   height: 70px;
   z-index: 100;
+  top: -200px;
 }
 
 .section-restaurant-landing .top-filters {
@@ -173,17 +188,26 @@ body.branch-banner-is-active {
   display:none;
 }
 
-@media screen and (max-width: 768px){
+@media screen and (max-width: 877px){
+  .section-restaurant-landing .section-map-app {
+    top: -150px;
+  }
+}
+
+@media screen and (max-width: 767px){
   .section-restaurant-landing .top-filters {
     display: inline;
   }
+
   .section-restaurant-landing .section-map-app .map-data .map-header {
       top: 70px;
   }
   .section-restaurant-landing .section-map-app {
     height:100px;
+    top: 0px;
   }
 }
+
 
 /* fix for global header close after inserting bootstrap modal only*/
 /*.global-header-search .close.js-close-search:focus{
