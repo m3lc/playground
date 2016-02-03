@@ -78,6 +78,39 @@ define('dine/components/loading-indicator', ['exports', 'ember'], function (expo
 	exports['default'] = Ember['default'].Component.extend({});
 
 });
+define('dine/components/modal-popup', ['exports', 'ember'], function (exports, Ember) {
+
+    'use strict';
+
+    exports['default'] = Ember['default'].Component.extend({
+        modal: null,
+        options: null,
+        show: false,
+        initModal: function initModal() {
+            var modalElem = this.$('.modal').detach().appendTo("body");
+            var modal = modalElem.modal(this.get("options") || {});
+            this.set("modal", modal);
+        },
+        showModal: function showModal() {
+            if (Em.isEmpty(this.get("modal"))) {
+                this.initModal();
+            } else {
+                this.get("modal").modal("show");
+            }
+        },
+        hideModal: function hideModal() {
+            if (!Em.isEmpty(this.get("modal"))) {
+                this.get("modal").modal("hide");
+            }
+        },
+        setup: (function () {
+            if (this.get("show")) {
+                this.initModal();
+            }
+        }).on("didInsertElement")
+    });
+
+});
 define('dine/components/restaurant-card', ['exports', 'ember'], function (exports, Ember) {
 
   'use strict';
@@ -438,37 +471,96 @@ define('dine/components/restaurants-list', ['exports', 'ember'], function (expor
 });
 define('dine/components/restaurants-map-search', ['exports', 'ember', 'dine/config/environment'], function (exports, Ember, config) {
 
-  'use strict';
+    'use strict';
 
-  exports['default'] = Ember['default'].Component.extend({
-    cityService: Ember['default'].inject.service('city'),
-    setupAlgoliaSearch: (function () {
-      var self = this;
-      var input = this.$('.map-search form input');
-      var algoliaClient = window.algoliasearch(config['default'].APP.Algolia.applicationId, config['default'].APP.Algolia.searchOnlyAPIKey);
-      var algoliaIndex = algoliaClient.initIndex('Restaurants - ' + this.get('cityService').current.name);
+    exports['default'] = Ember['default'].Component.extend({
+        cityService: Ember['default'].inject.service('city'),
+        searchClient: null,
+        searchIndex: null,
+        setupAlgoliaSearch: (function () {
+            var self = this;
+            var input = this.$('.map-search form input');
+            var algoliaClient = window.algoliasearch(config['default'].APP.Algolia.applicationId, config['default'].APP.Algolia.searchOnlyAPIKey);
+            var algoliaIndex = algoliaClient.initIndex('Restaurants - ' + this.get('cityService').current.name);
+            self.set("searchClient", algoliaClient);
+            self.set("searchIndex", algoliaIndex);
+            var params = {
+                hitsPerPage: 10,
+                facets: '*'
+            };
+            var theTypeahead = input.typeahead({
+                minLength: 3,
+                highlight: true
+            }, {
+                name: 'restaurants',
+                display: 'title',
+                limit: 8,
+                source: function source(query, syncCb, asyncCb) {
+                    var cb;
+                    if (typeof asyncCb === 'function') {
+                        // typeahead 0.11
+                        cb = asyncCb;
+                    } else {
+                        // pre typeahead 0.11
+                        cb = syncCb;
+                    }
 
-      input.typeahead({
-        minLength: 3,
-        highlight: true
-      }, {
-        name: 'restaurants',
-        display: 'title',
-        source: algoliaIndex.ttAdapter({ hitsPerPage: 10, facets: '*' }),
-        templates: {
-          empty: ['<div class="empty-message">', 'unable to find any restaurants that match the current query', '</div>'].join('\n'),
-          suggestion: function suggestion(data) {
-            return '<div><strong>' + data.title + '</strong><br><small>' + data.neighborhood + '</small></div>';
-          }
+                    self.get("searchIndex").search(query, params, function searchDone(err, content) {
+                        if (err) {
+                            cb(err);
+                            return;
+                        }
+
+                        cb(content.hits);
+                    });
+                },
+                templates: {
+                    empty: ['<div class="empty-message">', 'unable to find any restaurants that match the current query', '</div>'].join('\n'),
+                    suggestion: function suggestion(data) {
+                        return '<div><strong>' + data.title + '</strong><br><small>' + data.neighborhood + '</small></div>';
+                    }
+                }
+            });
+
+            theTypeahead.on('typeahead:selected', function (event, data) {
+                var citySlug = window.getSlug(data.city.title.trim());
+                var restaurantSlug = window.getSlug(data.title.trim()) + '-' + data.id;
+                self.router.transitionTo('city.restaurant', citySlug, restaurantSlug);
+            });
+            this.setupPlaceholder();
+            this.set("theTypeahead", theTypeahead);
+        }).on('didInsertElement'),
+        setupPlaceholder: (function () {
+            var input = this.$('.map-search form input.tt-input');
+            input.attr("placeholder", "Search Restaurants in " + this.get('cityService').current.name);
+        }).observes("cityService.current"),
+        updateSearchIndex: (function () {
+            var algoliaIndex = this.get("searchClient").initIndex('Restaurants - ' + this.get('cityService').current.name);
+            this.set("searchIndex", algoliaIndex);
+        }).observes("cityService.current"),
+        keyDown: function keyDown(e) {
+            if (e.which === 13 || e.keyCode === 13) {
+                this.send("searchAction");
+            }
+        },
+        actions: {
+            searchAction: function searchAction() {
+                window.NProgress.start();
+                var router = this.get("router");
+                var searchQuery = this.$(".map-search form input.tt-input").val().trim();
+
+                this.get("cityService").searchRestaurants(searchQuery, null, function (restaurants) {
+                    window.NProgress.done();
+                    if (!Em.isEmpty(restaurants)) {
+                        router.transitionTo("city.loading");
+                        Em.run.next(function () {
+                            router.transitionTo('city.restaurantsWithFeatures', restaurants, { queryParams: { searchQuery: searchQuery } });
+                        });
+                    }
+                });
+            }
         }
-      }).on('typeahead:selected', function (event, data) {
-        var citySlug = window.getSlug(data.city.title.trim());
-        var restaurantSlug = window.getSlug(data.title.trim()) + '-' + data.id;
-
-        self.router.transitionTo('city.restaurant', citySlug, restaurantSlug);
-      });
-    }).on('didInsertElement')
-  });
+    });
 
 });
 define('dine/components/restaurants-map', ['exports', 'ember'], function (exports, Ember) {
@@ -620,11 +712,24 @@ define('dine/controllers/city/neighborhood', ['exports', 'ember'], function (exp
 	exports['default'] = Ember['default'].Controller.extend({});
 
 });
+define('dine/controllers/city/restaurants-with-features', ['exports', 'ember'], function (exports, Ember) {
+
+	'use strict';
+
+	exports['default'] = Ember['default'].Controller.extend({
+		queryParams: { searchQuery: "q" },
+		searchQuery: null
+	});
+
+});
 define('dine/controllers/city/restaurants', ['exports', 'ember'], function (exports, Ember) {
 
 	'use strict';
 
-	exports['default'] = Ember['default'].Controller.extend({});
+	exports['default'] = Ember['default'].Controller.extend({
+		queryParams: { searchQuery: "q" },
+		searchQuery: null
+	});
 
 });
 define('dine/controllers/city', ['exports', 'ember'], function (exports, Ember) {
@@ -818,20 +923,20 @@ define('dine/initializers/overrides', ['exports'], function (exports) {
           Ember.run.scheduleOnce("afterRender", this, function () {
             if (!Modernizr.cssanimations) {
               // instead of opacity and animate, consider fadeIn
-              // $("#dine-app.fade").css("opacity", 0);
-              // $("#dine-app.fade").delay(100).animate({opacity:1},500);
-              $("#dine-app.fade").css("opacity", 1);
-              $("#dine-app.fade").css("display", "none");
-              $("#dine-app.fade").fadeIn(500);
+              // $("#dine-app.fade-content").css("opacity", 0);
+              // $("#dine-app.fade-content").delay(100).animate({opacity:1},500);
+              $("#dine-app.fade-content").css("opacity", 1);
+              $("#dine-app.fade-content").css("display", "none");
+              $("#dine-app.fade-content").fadeIn(500);
             } else {
-              $("#dine-app.fade").css("display", "block");
-              $("#dine-app.fade").removeClass("fade-in");
-              $("#dine-app.fade").addClass("fade-in");
+              $("#dine-app.fade-content").css("display", "block");
+              $("#dine-app.fade-content").removeClass("fade-in");
+              $("#dine-app.fade-content").addClass("fade-in");
             }
           });
         },
         willTransition: function willTransition() {
-          $("#dine-app.fade").removeClass("fade-in");
+          $("#dine-app.fade-content").removeClass("fade-in");
         }
       }
     });
@@ -1158,7 +1263,13 @@ define('dine/routes/city/restaurants-with-features', ['exports', 'dine/routes/ci
 
 	'use strict';
 
-	exports['default'] = CityRestaurantsRoute['default'].extend({});
+	exports['default'] = CityRestaurantsRoute['default'].extend({
+		controllerName: "city/restaurants",
+		templateName: "city/restaurants"
+		// renderTemplate() {
+		//    	this.render('city.restaurants');
+		//  	}
+	});
 
 });
 define('dine/routes/city/restaurants', ['exports', 'ember'], function (exports, Ember) {
@@ -1183,7 +1294,7 @@ define('dine/routes/city/restaurants', ['exports', 'ember'], function (exports, 
       var self = this;
       var params = transition.params['city.restaurants'] || transition.params['city.restaurantsWithFeatures'];
       var cityService = self.get('cityService');
-      var citySlug = params.citySlug;
+      var citySlug = params.citySlug || cityService.current.slug;
 
       return new Ember['default'].RSVP.Promise(function (resolve, reject) {
         var cities = self.modelFor('city');
@@ -1231,7 +1342,17 @@ define('dine/routes/city/restaurants', ['exports', 'ember'], function (exports, 
     afterModel: function afterModel() {
       window.NProgress.done();
     },
-    setupController: function setupController(controller, model) {
+    serialize: function serialize(model) {
+      //if a model has been passed directly i.e. via transitionTo when using search,
+      //then specify url dynamic segments
+      return {
+        citySlug: this.get("cityService").current.slug,
+        neighborhoodSlug: "all",
+        cuisineSlug: "all",
+        featureSlug: "all"
+      };
+    },
+    setupController: function setupController(controller, model, transition) {
       controller = this.controllerFor('city.restaurants');
 
       var cityService = this.get('cityService');
@@ -1272,9 +1393,19 @@ define('dine/routes/city/restaurants', ['exports', 'ember'], function (exports, 
       controller.set('neighborhoods', currentNeighborhoods);
       controller.set('cuisines', currentCuisines);
       controller.set('features', currentFeatures);
-    },
-    renderTemplate: function renderTemplate() {
-      this.render('city.restaurants');
+
+      if (!Em.isEmpty(transition.queryParams["q"])) {
+        var searchQuery = transition.queryParams["q"].trim();
+        this.get("cityService").searchRestaurants(searchQuery, restaurants, function (matchedRestaurants) {
+          controller.set("restaurants", matchedRestaurants);
+          var restaurantsForMap = matchedRestaurants.slice(0, 10);
+          controller.set('restaurantsForMap', restaurantsForMap);
+        });
+      } else {
+        Em.run.next(function () {
+          controller.set("searchQuery", null);
+        });
+      }
     }
   });
 
@@ -1742,7 +1873,7 @@ define('dine/services/branch-metrics', ['exports', 'ember', 'dine/config/environ
     exports['default'] = Ember['default'].Service.extend({
         branch: null,
         init: function init() {
-
+            this.resetSmartBanner();
             this.initBranchMetrics();
 
             return this._super.apply(this, arguments);
@@ -1764,6 +1895,13 @@ define('dine/services/branch-metrics', ['exports', 'ember', 'dine/config/environ
                 self.set("branch", branch);
             });
             self.set("branch", branch);
+        },
+        resetSmartBanner: function resetSmartBanner() {
+            var isInitialized = sessionStorage.getItem("branchMetricsSmartBannerInit");
+            if (Em.isEmpty(isInitialized)) {
+                localStorage.setItem("BRANCH_WEBSDK_KEYhideBanner", 0);
+                sessionStorage.setItem("branchMetricsSmartBannerInit", 1);
+            }
         },
         showSmartAppBanner: function showSmartAppBanner(options, data) {
             var debounceDelay = 1000;
@@ -1806,7 +1944,7 @@ define('dine/services/branch-metrics', ['exports', 'ember', 'dine/config/environ
     });
 
 });
-define('dine/services/city', ['exports', 'ember'], function (exports, Ember) {
+define('dine/services/city', ['exports', 'ember', 'dine/config/environment'], function (exports, Ember, config) {
 
   'use strict';
 
@@ -1814,6 +1952,7 @@ define('dine/services/city', ['exports', 'ember'], function (exports, Ember) {
     api: Ember['default'].inject.service('api'),
     cache: {},
     cities: [],
+    searchClient: null,
     current: {
       collections: [],
       cuisinesByNeighborhood: {},
@@ -1832,6 +1971,7 @@ define('dine/services/city', ['exports', 'ember'], function (exports, Ember) {
       this._saveOnCache('currentCity', this.get('current'));
     }).observes('current'),
     init: function init() {
+      this._super.apply(this, arguments);
       var cities = this._getFromCache('cities');
       var currentCity = this._getFromCache('currentCity');
 
@@ -1999,6 +2139,60 @@ define('dine/services/city', ['exports', 'ember'], function (exports, Ember) {
           });
         }
       });
+    },
+    searchRestaurants: function searchRestaurants(searchQuery, allRestaurantsData, callback) {
+      var algoliaClient = this.get("searchClient");
+      if (Em.isEmpty(algoliaClient)) {
+        algoliaClient = window.algoliasearch(config['default'].APP.Algolia.applicationId, config['default'].APP.Algolia.searchOnlyAPIKey);
+        this.set("searchClient", algoliaClient);
+      }
+      var algoliaIndex = algoliaClient.initIndex('Restaurants - ' + this.get('current.name'));
+      this.set("searchIndex", algoliaIndex);
+
+      var searchIndex = this.get("searchIndex");
+      var restaurants = [];
+      var self = this;
+      if (!Em.isEmpty(searchQuery)) {
+        searchIndex.search(searchQuery, { hitsPerPage: 10000 }, function (err, content) {
+          if (err) {
+            console.error(err);
+            callback(restaurants);
+            return;
+          }
+          var restaurantObjects = content.hits;
+          if (!Em.isEmpty(restaurantObjects)) {
+            //find each restaurant object from all restaurants
+            if (!Em.isEmpty(allRestaurantsData)) {
+              restaurantObjects.forEach(function (restaurantObject) {
+                var restaurantFound = allRestaurantsData.findBy("id", restaurantObject["id"]);
+                if (!Em.isEmpty(restaurantFound)) {
+                  restaurants.push(restaurantFound);
+                }
+              });
+              callback(restaurants);
+            } else {
+              self.getRestaurants("all", "all", "all").then(function (allRestaurants) {
+                restaurantObjects.forEach(function (restaurantObject) {
+                  restaurants.push(allRestaurants.findBy("id", restaurantObject["id"]));
+                });
+                callback(restaurants);
+              }, function (error) {
+                console.log(error);
+                callback(restaurants);
+              });
+            }
+          } else {
+            callback(restaurants);
+          }
+        });
+      } else {
+        self.getRestaurants("all", "all", "all").then(function (allRestaurants) {
+          callback(allRestaurants);
+        }, function (error) {
+          console.log(error);
+          callback(restaurants);
+        });
+      }
     },
     _saveOnCache: function _saveOnCache(key, data) {
       this.get('cache')[key] = data;
@@ -4210,7 +4404,7 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["inline","restaurants-map",[],["restaurants",["subexpr","@mut",[["get","restaurantsForMap",["loc",[null,[3,30],[3,47]]]]],[],[]]],["loc",[null,[3,0],[3,49]]]]
+          ["inline","restaurants-map",[],["restaurants",["subexpr","@mut",[["get","restaurantsForMap",["loc",[null,[3,30],[3,47]]]]],[],[]],"searchQuery",["subexpr","@mut",[["get","searchQuery",["loc",[null,[3,60],[3,71]]]]],[],[]]],["loc",[null,[3,0],[3,73]]]]
         ],
         locals: [],
         templates: []
@@ -4226,7 +4420,7 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 20,
+            "line": 21,
             "column": 0
           }
         },
@@ -4262,7 +4456,7 @@ define('dine/templates/city/restaurants', ['exports'], function (exports) {
       statements: [
         ["content","smart-app-banner",["loc",[null,[1,0],[1,20]]]],
         ["block","is-mobile",[],["show",false],0,null,["loc",[null,[2,0],[4,14]]]],
-        ["inline","restaurants-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[6,24],[6,28]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[7,28],[7,36]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[8,28],[8,36]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[9,26],[9,32]]]]],[],[]],"restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[10,31],[10,42]]]]],[],[]],"neighborhoodLabel",["subexpr","@mut",[["get","neighborhoodLabel",["loc",[null,[11,37],[11,54]]]]],[],[]],"neighborhoodSlug",["subexpr","@mut",[["get","neighborhoodSlug",["loc",[null,[12,36],[12,52]]]]],[],[]],"neighborhoods",["subexpr","@mut",[["get","neighborhoods",["loc",[null,[13,33],[13,46]]]]],[],[]],"cuisineLabel",["subexpr","@mut",[["get","cuisineLabel",["loc",[null,[14,32],[14,44]]]]],[],[]],"cuisineSlug",["subexpr","@mut",[["get","cuisineSlug",["loc",[null,[15,31],[15,42]]]]],[],[]],"cuisines",["subexpr","@mut",[["get","cuisines",["loc",[null,[16,28],[16,36]]]]],[],[]],"featureLabel",["subexpr","@mut",[["get","featureLabel",["loc",[null,[17,32],[17,44]]]]],[],[]],"featureSlug",["subexpr","@mut",[["get","featureSlug",["loc",[null,[18,31],[18,42]]]]],[],[]],"features",["subexpr","@mut",[["get","features",["loc",[null,[19,28],[19,36]]]]],[],[]]],["loc",[null,[6,0],[19,38]]]]
+        ["inline","restaurants-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[6,24],[6,28]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[7,28],[7,36]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[8,28],[8,36]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[9,26],[9,32]]]]],[],[]],"restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[10,31],[10,42]]]]],[],[]],"neighborhoodLabel",["subexpr","@mut",[["get","neighborhoodLabel",["loc",[null,[11,37],[11,54]]]]],[],[]],"neighborhoodSlug",["subexpr","@mut",[["get","neighborhoodSlug",["loc",[null,[12,36],[12,52]]]]],[],[]],"neighborhoods",["subexpr","@mut",[["get","neighborhoods",["loc",[null,[13,33],[13,46]]]]],[],[]],"cuisineLabel",["subexpr","@mut",[["get","cuisineLabel",["loc",[null,[14,32],[14,44]]]]],[],[]],"cuisineSlug",["subexpr","@mut",[["get","cuisineSlug",["loc",[null,[15,31],[15,42]]]]],[],[]],"cuisines",["subexpr","@mut",[["get","cuisines",["loc",[null,[16,28],[16,36]]]]],[],[]],"featureLabel",["subexpr","@mut",[["get","featureLabel",["loc",[null,[17,32],[17,44]]]]],[],[]],"featureSlug",["subexpr","@mut",[["get","featureSlug",["loc",[null,[18,31],[18,42]]]]],[],[]],"features",["subexpr","@mut",[["get","features",["loc",[null,[19,28],[19,36]]]]],[],[]],"searchQuery",["subexpr","@mut",[["get","searchQuery",["loc",[null,[20,31],[20,42]]]]],[],[]]],["loc",[null,[6,0],[20,44]]]]
       ],
       locals: [],
       templates: [child0]
@@ -5036,11 +5230,11 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
             "loc": {
               "source": null,
               "start": {
-                "line": 12,
+                "line": 11,
                 "column": 12
               },
               "end": {
-                "line": 16,
+                "line": 15,
                 "column": 12
               }
             },
@@ -5074,8 +5268,8 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["element","bind-attr",[],["href","view.href"],["loc",[null,[13,17],[13,47]]]],
-            ["content","city.title",["loc",[null,[14,16],[14,30]]]]
+            ["element","bind-attr",[],["href","view.href"],["loc",[null,[12,17],[12,47]]]],
+            ["content","city.title",["loc",[null,[13,16],[13,30]]]]
           ],
           locals: [],
           templates: []
@@ -5087,11 +5281,11 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
           "loc": {
             "source": null,
             "start": {
-              "line": 11,
+              "line": 10,
               "column": 10
             },
             "end": {
-              "line": 17,
+              "line": 16,
               "column": 10
             }
           },
@@ -5114,13 +5308,94 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
           return morphs;
         },
         statements: [
-          ["block","link-to",["city.collections",["get","city.slug",["loc",[null,[12,42],[12,51]]]]],["tagName","li","href",false],0,null,["loc",[null,[12,12],[16,24]]]]
+          ["block","link-to",["city.collections",["get","city.slug",["loc",[null,[11,42],[11,51]]]]],["tagName","li","href",false],0,null,["loc",[null,[11,12],[15,24]]]]
         ],
         locals: ["city"],
         templates: [child0]
       };
     }());
     var child1 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 21,
+              "column": 6
+            },
+            "end": {
+              "line": 23,
+              "column": 6
+            }
+          },
+          "moduleName": "dine/templates/components/collections-list.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("span");
+          dom.setAttribute(el1,"class","active");
+          var el2 = dom.createTextNode("Lists");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes() { return []; },
+        statements: [
+
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child2 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 25,
+              "column": 6
+            },
+            "end": {
+              "line": 27,
+              "column": 6
+            }
+          },
+          "moduleName": "dine/templates/components/collections-list.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("span");
+          var el2 = dom.createTextNode("Restaurants");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes() { return []; },
+        statements: [
+
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child3 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -5128,11 +5403,11 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
             "loc": {
               "source": null,
               "start": {
-                "line": 78,
+                "line": 86,
                 "column": 16
               },
               "end": {
-                "line": 80,
+                "line": 88,
                 "column": 16
               }
             },
@@ -5157,7 +5432,7 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["inline","collection-card",[],["collection",["subexpr","@mut",[["get","collection",["loc",[null,[79,47],[79,57]]]]],[],[]]],["loc",[null,[79,18],[79,59]]]]
+            ["inline","collection-card",[],["collection",["subexpr","@mut",[["get","collection",["loc",[null,[87,47],[87,57]]]]],[],[]]],["loc",[null,[87,18],[87,59]]]]
           ],
           locals: ["collection"],
           templates: []
@@ -5170,11 +5445,11 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
             "loc": {
               "source": null,
               "start": {
-                "line": 84,
+                "line": 92,
                 "column": 12
               },
               "end": {
-                "line": 90,
+                "line": 98,
                 "column": 12
               }
             },
@@ -5210,7 +5485,7 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["element","action",["loadMore"],["on","click"],["loc",[null,[86,41],[86,73]]]]
+            ["element","action",["loadMore"],["on","click"],["loc",[null,[94,41],[94,73]]]]
           ],
           locals: [],
           templates: []
@@ -5222,11 +5497,11 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
           "loc": {
             "source": null,
             "start": {
-              "line": 73,
+              "line": 81,
               "column": 6
             },
             "end": {
-              "line": 93,
+              "line": 101,
               "column": 6
             }
           },
@@ -5285,8 +5560,8 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
           return morphs;
         },
         statements: [
-          ["block","each",[["get","paginatedResults",["loc",[null,[78,24],[78,40]]]]],[],0,null,["loc",[null,[78,16],[80,25]]]],
-          ["block","if",[["get","showLoadMore",["loc",[null,[84,18],[84,30]]]]],[],1,null,["loc",[null,[84,12],[90,19]]]]
+          ["block","each",[["get","paginatedResults",["loc",[null,[86,24],[86,40]]]]],[],0,null,["loc",[null,[86,16],[88,25]]]],
+          ["block","if",[["get","showLoadMore",["loc",[null,[92,18],[92,30]]]]],[],1,null,["loc",[null,[92,12],[98,19]]]]
         ],
         locals: [],
         templates: [child0, child1]
@@ -5302,7 +5577,7 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
             "column": 0
           },
           "end": {
-            "line": 97,
+            "line": 105,
             "column": 0
           }
         },
@@ -5327,7 +5602,7 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
         dom.appendChild(el3, el4);
         var el4 = dom.createElement("div");
         dom.setAttribute(el4,"class","menu");
-        var el5 = dom.createTextNode("\n        Select your city\n        ");
+        var el5 = dom.createTextNode("\n        ");
         dom.appendChild(el4, el5);
         var el5 = dom.createElement("span");
         dom.setAttribute(el5,"class","current-item");
@@ -5358,6 +5633,21 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
         dom.appendChild(el4, el5);
         dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("\n    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("div");
+        dom.setAttribute(el3,"class","filter-toggle-tabs");
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createComment("");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("  ");
         dom.appendChild(el3, el4);
         dom.appendChild(el2, el3);
         var el3 = dom.createTextNode("\n  ");
@@ -5426,23 +5716,29 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
         var element3 = dom.childAt(fragment, [0]);
-        var element4 = dom.childAt(element3, [1, 1, 1]);
-        var element5 = dom.childAt(element3, [3, 1]);
-        var morphs = new Array(4);
-        morphs[0] = dom.createMorphAt(dom.childAt(element4, [1]),1,1);
-        morphs[1] = dom.createMorphAt(dom.childAt(element4, [3]),1,1);
-        morphs[2] = dom.createMorphAt(dom.childAt(element5, [1, 1]),0,0);
-        morphs[3] = dom.createMorphAt(element5,7,7);
+        var element4 = dom.childAt(element3, [1]);
+        var element5 = dom.childAt(element4, [1, 1]);
+        var element6 = dom.childAt(element4, [3]);
+        var element7 = dom.childAt(element3, [3, 1]);
+        var morphs = new Array(6);
+        morphs[0] = dom.createMorphAt(dom.childAt(element5, [1]),1,1);
+        morphs[1] = dom.createMorphAt(dom.childAt(element5, [3]),1,1);
+        morphs[2] = dom.createMorphAt(element6,1,1);
+        morphs[3] = dom.createMorphAt(element6,3,3);
+        morphs[4] = dom.createMorphAt(dom.childAt(element7, [1, 1]),0,0);
+        morphs[5] = dom.createMorphAt(element7,7,7);
         return morphs;
       },
       statements: [
-        ["content","cityName",["loc",[null,[7,10],[7,22]]]],
-        ["block","each",[["get","cities",["loc",[null,[11,18],[11,24]]]]],[],0,null,["loc",[null,[11,10],[17,19]]]],
-        ["content","resultMessage",["loc",[null,[26,12],[26,29]]]],
-        ["block","if",[["get","collections.length",["loc",[null,[73,12],[73,30]]]]],[],1,null,["loc",[null,[73,6],[93,13]]]]
+        ["content","cityName",["loc",[null,[6,10],[6,22]]]],
+        ["block","each",[["get","cities",["loc",[null,[10,18],[10,24]]]]],[],0,null,["loc",[null,[10,10],[16,19]]]],
+        ["block","link-to",["city.collections",["get","citySlug",["loc",[null,[21,36],[21,44]]]]],[],1,null,["loc",[null,[21,6],[23,18]]]],
+        ["block","link-to",["city.restaurantsWithFeatures",["get","citySlug",["loc",[null,[25,48],[25,56]]]],"all","all","all"],[],2,null,["loc",[null,[25,6],[27,18]]]],
+        ["content","resultMessage",["loc",[null,[34,12],[34,29]]]],
+        ["block","if",[["get","collections.length",["loc",[null,[81,12],[81,30]]]]],[],3,null,["loc",[null,[81,6],[101,13]]]]
       ],
       locals: [],
-      templates: [child0, child1]
+      templates: [child0, child1, child2, child3]
     };
   }()));
 
@@ -5727,6 +6023,199 @@ define('dine/templates/components/loading-indicator', ['exports'], function (exp
       ],
       locals: [],
       templates: []
+    };
+  }()));
+
+});
+define('dine/templates/components/modal-popup', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    var child0 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 9,
+              "column": 7
+            },
+            "end": {
+              "line": 11,
+              "column": 7
+            }
+          },
+          "moduleName": "dine/templates/components/modal-popup.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("      		");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment,1,1,contextualElement);
+          return morphs;
+        },
+        statements: [
+          ["content","yield",["loc",[null,[10,8],[10,17]]]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child1 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 11,
+              "column": 7
+            },
+            "end": {
+              "line": 13,
+              "column": 7
+            }
+          },
+          "moduleName": "dine/templates/components/modal-popup.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("      		");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment("");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createUnsafeMorphAt(fragment,1,1,contextualElement);
+          return morphs;
+        },
+        statements: [
+          ["content","content",["loc",[null,[12,8],[12,21]]]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    return {
+      meta: {
+        "revision": "Ember@2.0.0",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 18,
+            "column": 0
+          }
+        },
+        "moduleName": "dine/templates/components/modal-popup.hbs"
+      },
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("div");
+        dom.setAttribute(el1,"class","modal fade");
+        dom.setAttribute(el1,"tabindex","-1");
+        dom.setAttribute(el1,"role","dialog");
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("div");
+        dom.setAttribute(el2,"class","modal-dialog");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("div");
+        dom.setAttribute(el3,"class","modal-content");
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("div");
+        dom.setAttribute(el4,"class","modal-header");
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("button");
+        dom.setAttribute(el5,"type","button");
+        dom.setAttribute(el5,"class","close");
+        dom.setAttribute(el5,"data-dismiss","modal");
+        dom.setAttribute(el5,"aria-label","Close");
+        var el6 = dom.createElement("span");
+        dom.setAttribute(el6,"aria-hidden","true");
+        var el7 = dom.createTextNode("×");
+        dom.appendChild(el6, el7);
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("h4");
+        dom.setAttribute(el5,"class","modal-title");
+        var el6 = dom.createTextNode("Modal title");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n      ");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("div");
+        dom.setAttribute(el4,"class","modal-body");
+        var el5 = dom.createTextNode("\n");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createComment("");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("      ");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createComment(" /.modal-content ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n  ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createComment(" /.modal-dialog ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createComment(" /.modal ");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var morphs = new Array(1);
+        morphs[0] = dom.createMorphAt(dom.childAt(fragment, [0, 1, 1, 3]),1,1);
+        return morphs;
+      },
+      statements: [
+        ["block","if",[["get","hasBlock",["loc",[null,[9,13],[9,21]]]]],[],0,1,["loc",[null,[9,7],[13,14]]]]
+      ],
+      locals: [],
+      templates: [child0, child1]
     };
   }()));
 
@@ -6051,10 +6540,10 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           return el0;
         },
         buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var element4 = dom.childAt(fragment, [1]);
+          var element5 = dom.childAt(fragment, [1]);
           var morphs = new Array(2);
-          morphs[0] = dom.createElementMorph(element4);
-          morphs[1] = dom.createMorphAt(element4,1,1);
+          morphs[0] = dom.createElementMorph(element5);
+          morphs[1] = dom.createMorphAt(element5,1,1);
           return morphs;
         },
         statements: [
@@ -6103,10 +6592,10 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
             return el0;
           },
           buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-            var element2 = dom.childAt(fragment, [1]);
+            var element3 = dom.childAt(fragment, [1]);
             var morphs = new Array(2);
-            morphs[0] = dom.createElementMorph(element2);
-            morphs[1] = dom.createMorphAt(element2,1,1);
+            morphs[0] = dom.createElementMorph(element3);
+            morphs[1] = dom.createMorphAt(element3,1,1);
             return morphs;
           },
           statements: [
@@ -6151,9 +6640,9 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           return el0;
         },
         buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var element3 = dom.childAt(fragment, [1]);
+          var element4 = dom.childAt(fragment, [1]);
           var morphs = new Array(2);
-          morphs[0] = dom.createElementMorph(element3);
+          morphs[0] = dom.createElementMorph(element4);
           morphs[1] = dom.createMorphAt(fragment,3,3,contextualElement);
           dom.insertBoundary(fragment, null);
           return morphs;
@@ -6244,10 +6733,10 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
             return el0;
           },
           buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-            var element0 = dom.childAt(fragment, [1]);
+            var element1 = dom.childAt(fragment, [1]);
             var morphs = new Array(2);
-            morphs[0] = dom.createElementMorph(element0);
-            morphs[1] = dom.createMorphAt(element0,1,1);
+            morphs[0] = dom.createElementMorph(element1);
+            morphs[1] = dom.createMorphAt(element1,1,1);
             return morphs;
           },
           statements: [
@@ -6292,9 +6781,9 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           return el0;
         },
         buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var element1 = dom.childAt(fragment, [1]);
+          var element2 = dom.childAt(fragment, [1]);
           var morphs = new Array(2);
-          morphs[0] = dom.createElementMorph(element1);
+          morphs[0] = dom.createElementMorph(element2);
           morphs[1] = dom.createMorphAt(fragment,3,3,contextualElement);
           dom.insertBoundary(fragment, null);
           return morphs;
@@ -6354,11 +6843,62 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           "loc": {
             "source": null,
             "start": {
-              "line": 95,
+              "line": 102,
+              "column": 12
+            },
+            "end": {
+              "line": 106,
+              "column": 12
+            }
+          },
+          "moduleName": "dine/templates/components/restaurant-landing.hbs"
+        },
+        arity: 1,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("              ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("li");
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createComment("");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n              ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var element0 = dom.childAt(fragment, [1]);
+          var morphs = new Array(2);
+          morphs[0] = dom.createElementMorph(element0);
+          morphs[1] = dom.createMorphAt(element0,1,1);
+          return morphs;
+        },
+        statements: [
+          ["element","action",["getNeighborhoods",["get","city.slug",["loc",[null,[103,46],[103,55]]]]],["on","click"],["loc",[null,[103,18],[103,68]]]],
+          ["content","city.title",["loc",[null,[104,16],[104,30]]]]
+        ],
+        locals: ["city"],
+        templates: []
+      };
+    }());
+    var child8 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 123,
               "column": 4
             },
             "end": {
-              "line": 97,
+              "line": 125,
               "column": 4
             }
           },
@@ -6383,13 +6923,13 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           return morphs;
         },
         statements: [
-          ["content","loading-indicator",["loc",[null,[96,6],[96,27]]]]
+          ["content","loading-indicator",["loc",[null,[124,6],[124,27]]]]
         ],
         locals: [],
         templates: []
       };
     }());
-    var child8 = (function() {
+    var child9 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -6397,11 +6937,11 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
             "loc": {
               "source": null,
               "start": {
-                "line": 103,
+                "line": 131,
                 "column": 8
               },
               "end": {
-                "line": 105,
+                "line": 133,
                 "column": 8
               }
             },
@@ -6426,7 +6966,7 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
             return morphs;
           },
           statements: [
-            ["inline","collection-card",[],["collection",["subexpr","@mut",[["get","collection",["loc",[null,[104,39],[104,49]]]]],[],[]]],["loc",[null,[104,10],[104,51]]]]
+            ["inline","collection-card",[],["collection",["subexpr","@mut",[["get","collection",["loc",[null,[132,39],[132,49]]]]],[],[]]],["loc",[null,[132,10],[132,51]]]]
           ],
           locals: ["collection"],
           templates: []
@@ -6438,11 +6978,11 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           "loc": {
             "source": null,
             "start": {
-              "line": 97,
+              "line": 125,
               "column": 4
             },
             "end": {
-              "line": 107,
+              "line": 135,
               "column": 4
             }
           },
@@ -6486,8 +7026,8 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           return morphs;
         },
         statements: [
-          ["content","cityName",["loc",[null,[99,24],[99,36]]]],
-          ["block","each",[["get","collections",["loc",[null,[103,16],[103,27]]]]],[],0,null,["loc",[null,[103,8],[105,17]]]]
+          ["content","cityName",["loc",[null,[127,24],[127,36]]]],
+          ["block","each",[["get","collections",["loc",[null,[131,16],[131,27]]]]],[],0,null,["loc",[null,[131,8],[133,17]]]]
         ],
         locals: [],
         templates: [child0]
@@ -6503,7 +7043,7 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
             "column": 0
           },
           "end": {
-            "line": 110,
+            "line": 138,
             "column": 0
           }
         },
@@ -6514,6 +7054,8 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
       hasRendered: false,
       buildFragment: function buildFragment(dom) {
         var el0 = dom.createDocumentFragment();
+        var el1 = dom.createTextNode("  ");
+        dom.appendChild(el0, el1);
         var el1 = dom.createElement("section");
         dom.setAttribute(el1,"class","hero restaurant-landing");
         var el2 = dom.createTextNode("\n  ");
@@ -6768,10 +7310,90 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         var el3 = dom.createTextNode("\n  ");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
+        var el2 = dom.createTextNode("\n  ");
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n\n");
+        var el1 = dom.createTextNode("\n\n  ");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createElement("div");
+        dom.setAttribute(el1,"class","section-map-app");
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("div");
+        dom.setAttribute(el2,"class","top-filters");
+        var el3 = dom.createTextNode("\n      ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("div");
+        dom.setAttribute(el3,"class","city-filters");
+        var el4 = dom.createTextNode("\n        ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("div");
+        dom.setAttribute(el4,"class","menu");
+        var el5 = dom.createTextNode("\n          ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("span");
+        dom.setAttribute(el5,"class","current-item");
+        var el6 = dom.createTextNode("\n            ");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createComment("");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createTextNode("\n            ");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createElement("span");
+        dom.setAttribute(el6,"class","icon icon-arrow-down");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createTextNode("\n          ");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n          ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("ul");
+        dom.setAttribute(el5,"class","menu-items");
+        var el6 = dom.createTextNode("\n");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createComment("");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createTextNode("          ");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n    \n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("section");
+        dom.setAttribute(el2,"class","map-data");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("div");
+        dom.setAttribute(el3,"class","map-header");
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("div");
+        dom.setAttribute(el4,"class","container");
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createComment("");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n      ");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n\n  ");
         dom.appendChild(el0, el1);
         var el1 = dom.createElement("section");
         dom.setAttribute(el1,"class","latest cards-layout cards-layout-one-column cards-layout-no-bot-pad");
@@ -6786,7 +7408,7 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         var el3 = dom.createTextNode("  ");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n");
+        var el2 = dom.createTextNode("\n  ");
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
@@ -6794,25 +7416,30 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var element5 = dom.childAt(fragment, [0, 1]);
-        var element6 = dom.childAt(element5, [1]);
-        var element7 = dom.childAt(element6, [1, 3]);
-        var element8 = dom.childAt(element7, [3]);
-        var element9 = dom.childAt(element7, [7]);
-        var element10 = dom.childAt(element7, [11]);
-        var element11 = dom.childAt(element7, [13]);
-        var element12 = dom.childAt(element6, [3, 3, 0]);
-        var morphs = new Array(10);
-        morphs[0] = dom.createAttrMorph(element5, 'style');
-        morphs[1] = dom.createMorphAt(dom.childAt(element8, [1, 1]),1,1);
-        morphs[2] = dom.createMorphAt(dom.childAt(element8, [3]),1,1);
-        morphs[3] = dom.createMorphAt(dom.childAt(element9, [1, 1]),0,0);
-        morphs[4] = dom.createMorphAt(dom.childAt(element9, [3]),1,1);
-        morphs[5] = dom.createMorphAt(dom.childAt(element10, [1, 1]),0,0);
-        morphs[6] = dom.createMorphAt(dom.childAt(element10, [3]),1,1);
-        morphs[7] = dom.createElementMorph(element11);
-        morphs[8] = dom.createAttrMorph(element12, 'src');
-        morphs[9] = dom.createMorphAt(dom.childAt(fragment, [2, 1]),1,1);
+        var element6 = dom.childAt(fragment, [1, 1]);
+        var element7 = dom.childAt(element6, [1]);
+        var element8 = dom.childAt(element7, [1, 3]);
+        var element9 = dom.childAt(element8, [3]);
+        var element10 = dom.childAt(element8, [7]);
+        var element11 = dom.childAt(element8, [11]);
+        var element12 = dom.childAt(element8, [13]);
+        var element13 = dom.childAt(element7, [3, 3, 0]);
+        var element14 = dom.childAt(fragment, [3]);
+        var element15 = dom.childAt(element14, [1, 1, 1]);
+        var morphs = new Array(13);
+        morphs[0] = dom.createAttrMorph(element6, 'style');
+        morphs[1] = dom.createMorphAt(dom.childAt(element9, [1, 1]),1,1);
+        morphs[2] = dom.createMorphAt(dom.childAt(element9, [3]),1,1);
+        morphs[3] = dom.createMorphAt(dom.childAt(element10, [1, 1]),0,0);
+        morphs[4] = dom.createMorphAt(dom.childAt(element10, [3]),1,1);
+        morphs[5] = dom.createMorphAt(dom.childAt(element11, [1, 1]),0,0);
+        morphs[6] = dom.createMorphAt(dom.childAt(element11, [3]),1,1);
+        morphs[7] = dom.createElementMorph(element12);
+        morphs[8] = dom.createAttrMorph(element13, 'src');
+        morphs[9] = dom.createMorphAt(dom.childAt(element15, [1]),1,1);
+        morphs[10] = dom.createMorphAt(dom.childAt(element15, [3]),1,1);
+        morphs[11] = dom.createMorphAt(dom.childAt(element14, [3, 1, 1]),1,1);
+        morphs[12] = dom.createMorphAt(dom.childAt(fragment, [5, 1]),1,1);
         return morphs;
       },
       statements: [
@@ -6825,10 +7452,13 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         ["block","if",[["get","cuisines",["loc",[null,[66,20],[66,28]]]]],[],5,6,["loc",[null,[66,14],[77,21]]]],
         ["element","action",["search"],["on","click"],["loc",[null,[81,35],[81,65]]]],
         ["attribute","src",["concat",[["get","constants.staticS3Url",["loc",[null,[87,76],[87,97]]]],"/v_2016/images/app-store.png"]]],
-        ["block","if",[["get","loadingCollections",["loc",[null,[95,10],[95,28]]]]],[],7,8,["loc",[null,[95,4],[107,11]]]]
+        ["content","cityName",["loc",[null,[98,12],[98,24]]]],
+        ["block","each",[["get","cities",["loc",[null,[102,20],[102,26]]]]],[],7,null,["loc",[null,[102,12],[106,21]]]],
+        ["content","restaurants-map-search",["loc",[null,[115,8],[115,34]]]],
+        ["block","if",[["get","loadingCollections",["loc",[null,[123,10],[123,28]]]]],[],8,9,["loc",[null,[123,4],[135,11]]]]
       ],
       locals: [],
-      templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8]
+      templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8, child9]
     };
   }()));
 
@@ -6968,7 +7598,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           return morphs;
         },
         statements: [
-          ["block","link-to",["city.restaurants",["get","city.slug",["loc",[null,[11,42],[11,51]]]],"all","all"],["class","menu-item","tagName","li","href",false],0,null,["loc",[null,[11,12],[15,24]]]]
+          ["block","link-to",["city.restaurants",["get","city.slug",["loc",[null,[11,42],[11,51]]]],"all","all",["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[11,90],[11,101]]]]],["loc",[null,[11,64],[11,102]]]]],["class","menu-item","tagName","li","href",false],0,null,["loc",[null,[11,12],[15,24]]]]
         ],
         locals: ["city"],
         templates: [child0]
@@ -7188,7 +7818,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[50,42],[50,50]]]],["get","neighborhood.slug",["loc",[null,[50,51],[50,68]]]],"all"],["tagName","li"],0,null,["loc",[null,[50,12],[54,24]]]]
+            ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[50,42],[50,50]]]],["get","neighborhood.slug",["loc",[null,[50,51],[50,68]]]],"all",["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[50,101],[50,112]]]]],["loc",[null,[50,75],[50,113]]]]],["tagName","li"],0,null,["loc",[null,[50,12],[54,24]]]]
           ],
           locals: ["neighborhood"],
           templates: [child0]
@@ -7230,7 +7860,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           return morphs;
         },
         statements: [
-          ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[46,40],[46,48]]]],"all","all"],["tagName","li"],0,null,["loc",[null,[46,10],[48,22]]]],
+          ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[46,40],[46,48]]]],"all","all",["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[46,87],[46,98]]]]],["loc",[null,[46,61],[46,99]]]]],["tagName","li"],0,null,["loc",[null,[46,10],[48,22]]]],
           ["block","each",[["get","neighborhoods",["loc",[null,[49,18],[49,31]]]]],[],1,null,["loc",[null,[49,10],[55,19]]]]
         ],
         locals: [],
@@ -7410,7 +8040,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[76,42],[76,50]]]],["get","neighborhoodSlug",["loc",[null,[76,51],[76,67]]]],["get","cuisine.slug",["loc",[null,[76,68],[76,80]]]]],["tagName","li"],0,null,["loc",[null,[76,12],[80,24]]]]
+            ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[76,42],[76,50]]]],["get","neighborhoodSlug",["loc",[null,[76,51],[76,67]]]],["get","cuisine.slug",["loc",[null,[76,68],[76,80]]]],["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[76,107],[76,118]]]]],["loc",[null,[76,81],[76,119]]]]],["tagName","li"],0,null,["loc",[null,[76,12],[80,24]]]]
           ],
           locals: ["cuisine"],
           templates: [child0]
@@ -7452,7 +8082,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           return morphs;
         },
         statements: [
-          ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[70,40],[70,48]]]],["get","neighborhoodSlug",["loc",[null,[70,49],[70,65]]]],"all"],["tagName","li"],0,null,["loc",[null,[70,10],[74,22]]]],
+          ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[70,40],[70,48]]]],["get","neighborhoodSlug",["loc",[null,[70,49],[70,65]]]],"all",["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[70,98],[70,109]]]]],["loc",[null,[70,72],[70,110]]]]],["tagName","li"],0,null,["loc",[null,[70,10],[74,22]]]],
           ["block","each",[["get","cuisines",["loc",[null,[75,18],[75,26]]]]],[],1,null,["loc",[null,[75,10],[81,19]]]]
         ],
         locals: [],
@@ -7632,7 +8262,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["block","link-to",["city.restaurantsWithFeatures",["get","citySlug",["loc",[null,[100,54],[100,62]]]],["get","neighborhoodSlug",["loc",[null,[100,63],[100,79]]]],["get","cuisineSlug",["loc",[null,[100,80],[100,91]]]],["get","feature.slug",["loc",[null,[100,92],[100,104]]]]],["tagName","li"],0,null,["loc",[null,[100,12],[104,24]]]]
+            ["block","link-to",["city.restaurantsWithFeatures",["get","citySlug",["loc",[null,[100,54],[100,62]]]],["get","neighborhoodSlug",["loc",[null,[100,63],[100,79]]]],["get","cuisineSlug",["loc",[null,[100,80],[100,91]]]],["get","feature.slug",["loc",[null,[100,92],[100,104]]]],["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[100,131],[100,142]]]]],["loc",[null,[100,105],[100,143]]]]],["tagName","li"],0,null,["loc",[null,[100,12],[104,24]]]]
           ],
           locals: ["feature"],
           templates: [child0]
@@ -7674,7 +8304,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           return morphs;
         },
         statements: [
-          ["block","link-to",["city.restaurantsWithFeatures",["get","citySlug",["loc",[null,[96,52],[96,60]]]],["get","neighborhoodSlug",["loc",[null,[96,61],[96,77]]]],["get","cuisineSlug",["loc",[null,[96,78],[96,89]]]],"all"],["tagName","li"],0,null,["loc",[null,[96,10],[98,22]]]],
+          ["block","link-to",["city.restaurantsWithFeatures",["get","citySlug",["loc",[null,[96,52],[96,60]]]],["get","neighborhoodSlug",["loc",[null,[96,61],[96,77]]]],["get","cuisineSlug",["loc",[null,[96,78],[96,89]]]],"all",["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[96,122],[96,133]]]]],["loc",[null,[96,96],[96,134]]]]],["tagName","li"],0,null,["loc",[null,[96,10],[98,22]]]],
           ["block","each",[["get","features",["loc",[null,[99,18],[99,26]]]]],[],1,null,["loc",[null,[99,10],[105,19]]]]
         ],
         locals: [],
@@ -7722,6 +8352,56 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
       };
     }());
     var child9 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 116,
+              "column": 8
+            },
+            "end": {
+              "line": 120,
+              "column": 8
+            }
+          },
+          "moduleName": "dine/templates/components/restaurants-list.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("        ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("p");
+          var el2 = dom.createTextNode("\n        matching ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("b");
+          var el3 = dom.createComment("");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n        ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1, 1]),0,0);
+          return morphs;
+        },
+        statements: [
+          ["content","searchQuery",["loc",[null,[118,20],[118,35]]]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child10 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -7729,11 +8409,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             "loc": {
               "source": null,
               "start": {
-                "line": 163,
+                "line": 168,
                 "column": 16
               },
               "end": {
-                "line": 165,
+                "line": 170,
                 "column": 16
               }
             },
@@ -7758,7 +8438,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["inline","restaurant-card",[],["restaurant",["subexpr","@mut",[["get","restaurant",["loc",[null,[164,47],[164,57]]]]],[],[]]],["loc",[null,[164,18],[164,59]]]]
+            ["inline","restaurant-card",[],["restaurant",["subexpr","@mut",[["get","restaurant",["loc",[null,[169,47],[169,57]]]]],[],[]]],["loc",[null,[169,18],[169,59]]]]
           ],
           locals: ["restaurant"],
           templates: []
@@ -7771,11 +8451,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             "loc": {
               "source": null,
               "start": {
-                "line": 169,
+                "line": 174,
                 "column": 12
               },
               "end": {
-                "line": 175,
+                "line": 180,
                 "column": 12
               }
             },
@@ -7811,7 +8491,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["element","action",["loadMore"],["on","click"],["loc",[null,[171,41],[171,73]]]]
+            ["element","action",["loadMore"],["on","click"],["loc",[null,[176,41],[176,73]]]]
           ],
           locals: [],
           templates: []
@@ -7823,11 +8503,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           "loc": {
             "source": null,
             "start": {
-              "line": 157,
+              "line": 162,
               "column": 6
             },
             "end": {
-              "line": 178,
+              "line": 183,
               "column": 6
             }
           },
@@ -7890,8 +8570,8 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           return morphs;
         },
         statements: [
-          ["block","each",[["get","paginatedResults",["loc",[null,[163,24],[163,40]]]]],[],0,null,["loc",[null,[163,16],[165,25]]]],
-          ["block","if",[["get","showLoadMore",["loc",[null,[169,18],[169,30]]]]],[],1,null,["loc",[null,[169,12],[175,19]]]]
+          ["block","each",[["get","paginatedResults",["loc",[null,[168,24],[168,40]]]]],[],0,null,["loc",[null,[168,16],[170,25]]]],
+          ["block","if",[["get","showLoadMore",["loc",[null,[174,18],[174,30]]]]],[],1,null,["loc",[null,[174,12],[180,19]]]]
         ],
         locals: [],
         templates: [child0, child1]
@@ -7907,7 +8587,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             "column": 0
           },
           "end": {
-            "line": 182,
+            "line": 187,
             "column": 0
           }
         },
@@ -8174,7 +8854,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
         var el6 = dom.createComment("");
         dom.appendChild(el5, el6);
         dom.appendChild(el4, el5);
-        var el5 = dom.createTextNode("\n      ");
+        var el5 = dom.createTextNode("\n");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createComment("");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("      ");
         dom.appendChild(el4, el5);
         dom.appendChild(el3, el4);
         var el4 = dom.createTextNode("\n\n      ");
@@ -8208,7 +8892,8 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
         var element15 = dom.childAt(element13, [3]);
         var element16 = dom.childAt(element13, [5]);
         var element17 = dom.childAt(element9, [7, 1]);
-        var morphs = new Array(12);
+        var element18 = dom.childAt(element17, [1]);
+        var morphs = new Array(13);
         morphs[0] = dom.createMorphAt(dom.childAt(element11, [1]),1,1);
         morphs[1] = dom.createMorphAt(dom.childAt(element11, [3]),1,1);
         morphs[2] = dom.createMorphAt(element12,1,1);
@@ -8219,8 +8904,9 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
         morphs[7] = dom.createMorphAt(dom.childAt(element15, [3]),1,1);
         morphs[8] = dom.createMorphAt(dom.childAt(element16, [1, 1]),0,0);
         morphs[9] = dom.createMorphAt(dom.childAt(element16, [3]),1,1);
-        morphs[10] = dom.createMorphAt(dom.childAt(element17, [1, 1]),0,0);
-        morphs[11] = dom.createMorphAt(element17,5,5);
+        morphs[10] = dom.createMorphAt(dom.childAt(element18, [1]),0,0);
+        morphs[11] = dom.createMorphAt(element18,3,3);
+        morphs[12] = dom.createMorphAt(element17,5,5);
         return morphs;
       },
       statements: [
@@ -8235,10 +8921,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
         ["content","featureLabel",["loc",[null,[89,34],[89,50]]]],
         ["block","if",[["get","features",["loc",[null,[95,14],[95,22]]]]],[],7,8,["loc",[null,[95,8],[108,15]]]],
         ["content","resultMessage",["loc",[null,[115,12],[115,29]]]],
-        ["block","if",[["get","restaurants.length",["loc",[null,[157,12],[157,30]]]]],[],9,null,["loc",[null,[157,6],[178,13]]]]
+        ["block","if",[["get","searchQuery",["loc",[null,[116,14],[116,25]]]]],[],9,null,["loc",[null,[116,8],[120,15]]]],
+        ["block","if",[["get","restaurants.length",["loc",[null,[162,12],[162,30]]]]],[],10,null,["loc",[null,[162,6],[183,13]]]]
       ],
       locals: [],
-      templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8, child9]
+      templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8, child9, child10]
     };
   }()));
 
@@ -8327,9 +9014,18 @@ define('dine/templates/components/restaurants-map-search', ['exports'], function
         dom.appendChild(el0, el1);
         return el0;
       },
-      buildRenderNodes: function buildRenderNodes() { return []; },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var element0 = dom.childAt(fragment, [0]);
+        var element1 = dom.childAt(element0, [1, 1]);
+        var element2 = dom.childAt(element0, [3]);
+        var morphs = new Array(2);
+        morphs[0] = dom.createAttrMorph(element1, 'value');
+        morphs[1] = dom.createElementMorph(element2);
+        return morphs;
+      },
       statements: [
-
+        ["attribute","value",["get","searchQuery",["loc",[null,[3,77],[3,88]]]]],
+        ["element","action",["searchAction"],[],["loc",[null,[5,212],[5,237]]]]
       ],
       locals: [],
       templates: []
@@ -8565,7 +9261,7 @@ define('dine/templates/components/restaurants-map', ['exports'], function (expor
         return morphs;
       },
       statements: [
-        ["content","restaurants-map-search",["loc",[null,[4,6],[4,32]]]],
+        ["inline","restaurants-map-search",[],["searchQuery",["subexpr","@mut",[["get","searchQuery",["loc",[null,[4,43],[4,54]]]]],[],[]]],["loc",[null,[4,6],[4,56]]]],
         ["inline","restaurant-map",[],["entries",["subexpr","@mut",[["get","entries",["loc",[null,[48,29],[48,36]]]]],[],[]]],["loc",[null,[48,4],[48,38]]]]
       ],
       locals: [],
@@ -9293,6 +9989,17 @@ define('dine/tests/components/loading-indicator.jshint', function () {
   });
 
 });
+define('dine/tests/components/modal-popup.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - components');
+  QUnit.test('components/modal-popup.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'components/modal-popup.js should pass jshint.'); 
+  });
+
+});
 define('dine/tests/components/restaurant-card.jshint', function () {
 
   'use strict';
@@ -9411,6 +10118,17 @@ define('dine/tests/controllers/city/neighborhood.jshint', function () {
   QUnit.test('controllers/city/neighborhood.js should pass jshint', function(assert) { 
     assert.expect(1);
     assert.ok(true, 'controllers/city/neighborhood.js should pass jshint.'); 
+  });
+
+});
+define('dine/tests/controllers/city/restaurants-with-features.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - controllers/city');
+  QUnit.test('controllers/city/restaurants-with-features.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'controllers/city/restaurants-with-features.js should pass jshint.'); 
   });
 
 });
@@ -10267,6 +10985,150 @@ define('dine/tests/integration/components/loading-indicator-test.jshint', functi
   QUnit.test('integration/components/loading-indicator-test.js should pass jshint', function(assert) { 
     assert.expect(1);
     assert.ok(true, 'integration/components/loading-indicator-test.js should pass jshint.'); 
+  });
+
+});
+define('dine/tests/integration/components/modal-popup-test', ['ember-qunit'], function (ember_qunit) {
+
+  'use strict';
+
+  ember_qunit.moduleForComponent('modal-popup', 'Integration | Component | modal popup', {
+    integration: true
+  });
+
+  ember_qunit.test('it renders', function (assert) {
+    assert.expect(2);
+
+    // Set any properties with this.set('myProperty', 'value');
+    // Handle any actions with this.on('myAction', function(val) { ... });
+
+    this.render(Ember.HTMLBars.template((function () {
+      return {
+        meta: {
+          'revision': 'Ember@2.0.0',
+          'loc': {
+            'source': null,
+            'start': {
+              'line': 1,
+              'column': 0
+            },
+            'end': {
+              'line': 1,
+              'column': 15
+            }
+          }
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment('');
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment, 0, 0, contextualElement);
+          dom.insertBoundary(fragment, 0);
+          dom.insertBoundary(fragment, null);
+          return morphs;
+        },
+        statements: [['content', 'modal-popup', ['loc', [null, [1, 0], [1, 15]]]]],
+        locals: [],
+        templates: []
+      };
+    })()));
+
+    assert.equal(this.$().text().trim(), '');
+
+    // Template block usage:
+    this.render(Ember.HTMLBars.template((function () {
+      var child0 = (function () {
+        return {
+          meta: {
+            'revision': 'Ember@2.0.0',
+            'loc': {
+              'source': null,
+              'start': {
+                'line': 2,
+                'column': 4
+              },
+              'end': {
+                'line': 4,
+                'column': 4
+              }
+            }
+          },
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode('      template block text\n');
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes() {
+            return [];
+          },
+          statements: [],
+          locals: [],
+          templates: []
+        };
+      })();
+
+      return {
+        meta: {
+          'revision': 'Ember@2.0.0',
+          'loc': {
+            'source': null,
+            'start': {
+              'line': 1,
+              'column': 0
+            },
+            'end': {
+              'line': 5,
+              'column': 2
+            }
+          }
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode('\n');
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment('');
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode('  ');
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
+          return morphs;
+        },
+        statements: [['block', 'modal-popup', [], [], 0, null, ['loc', [null, [2, 4], [4, 20]]]]],
+        locals: [],
+        templates: [child0]
+      };
+    })()));
+
+    assert.equal(this.$().text().trim(), 'template block text');
+  });
+
+});
+define('dine/tests/integration/components/modal-popup-test.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - integration/components');
+  QUnit.test('integration/components/modal-popup-test.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'integration/components/modal-popup-test.js should pass jshint.'); 
   });
 
 });
@@ -11661,7 +12523,7 @@ define('dine/tests/routes/city/restaurants.jshint', function () {
   QUnit.module('JSHint - routes/city');
   QUnit.test('routes/city/restaurants.js should pass jshint', function(assert) { 
     assert.expect(1);
-    assert.ok(false, 'routes/city/restaurants.js should pass jshint.\nroutes/city/restaurants.js: line 36, col 53, \'reject\' is defined but never used.\nroutes/city/restaurants.js: line 46, col 7, \'reject\' is not defined.\n\n2 errors'); 
+    assert.ok(false, 'routes/city/restaurants.js should pass jshint.\nroutes/city/restaurants.js: line 36, col 53, \'reject\' is defined but never used.\nroutes/city/restaurants.js: line 82, col 23, \'model\' is defined but never used.\nroutes/city/restaurants.js: line 46, col 7, \'reject\' is not defined.\n\n3 errors'); 
   });
 
 });
@@ -11716,7 +12578,7 @@ define('dine/tests/services/branch-metrics.jshint', function () {
   QUnit.module('JSHint - services');
   QUnit.test('services/branch-metrics.js should pass jshint', function(assert) { 
     assert.expect(1);
-    assert.ok(false, 'services/branch-metrics.js should pass jshint.\nservices/branch-metrics.js: line 17, col 77, Expected \'{\' and instead saw \'c\'.\nservices/branch-metrics.js: line 17, col 239, Missing semicolon.\nservices/branch-metrics.js: line 17, col 331, Missing semicolon.\nservices/branch-metrics.js: line 17, col 332, Missing semicolon.\nservices/branch-metrics.js: line 20, col 63, \'data\' is defined but never used.\nservices/branch-metrics.js: line 20, col 58, \'err\' is defined but never used.\nservices/branch-metrics.js: line 40, col 47, \'event\' is defined but never used.\nservices/branch-metrics.js: line 20, col 9, \'branch\' is not defined.\nservices/branch-metrics.js: line 21, col 31, \'branch\' is not defined.\nservices/branch-metrics.js: line 23, col 27, \'branch\' is not defined.\nservices/branch-metrics.js: line 45, col 9, \'branch\' is not defined.\nservices/branch-metrics.js: line 62, col 13, \'branch\' is not defined.\n\n12 errors'); 
+    assert.ok(false, 'services/branch-metrics.js should pass jshint.\nservices/branch-metrics.js: line 17, col 77, Expected \'{\' and instead saw \'c\'.\nservices/branch-metrics.js: line 17, col 239, Missing semicolon.\nservices/branch-metrics.js: line 17, col 331, Missing semicolon.\nservices/branch-metrics.js: line 17, col 332, Missing semicolon.\nservices/branch-metrics.js: line 20, col 63, \'data\' is defined but never used.\nservices/branch-metrics.js: line 20, col 58, \'err\' is defined but never used.\nservices/branch-metrics.js: line 47, col 47, \'event\' is defined but never used.\nservices/branch-metrics.js: line 20, col 9, \'branch\' is not defined.\nservices/branch-metrics.js: line 21, col 31, \'branch\' is not defined.\nservices/branch-metrics.js: line 23, col 27, \'branch\' is not defined.\nservices/branch-metrics.js: line 52, col 9, \'branch\' is not defined.\nservices/branch-metrics.js: line 69, col 13, \'branch\' is not defined.\n\n12 errors'); 
   });
 
 });
@@ -11838,6 +12700,33 @@ define('dine/tests/unit/controllers/city/restaurants-test.jshint', function () {
   QUnit.test('unit/controllers/city/restaurants-test.js should pass jshint', function(assert) { 
     assert.expect(1);
     assert.ok(true, 'unit/controllers/city/restaurants-test.js should pass jshint.'); 
+  });
+
+});
+define('dine/tests/unit/controllers/city/restaurants-with-features-test', ['ember-qunit'], function (ember_qunit) {
+
+  'use strict';
+
+  ember_qunit.moduleFor('controller:city/restaurants-with-features', {
+    // Specify the other units that are required for this test.
+    // needs: ['controller:foo']
+  });
+
+  // Replace this with your real tests.
+  ember_qunit.test('it exists', function (assert) {
+    var controller = this.subject();
+    assert.ok(controller);
+  });
+
+});
+define('dine/tests/unit/controllers/city/restaurants-with-features-test.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - unit/controllers/city');
+  QUnit.test('unit/controllers/city/restaurants-with-features-test.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'unit/controllers/city/restaurants-with-features-test.js should pass jshint.'); 
   });
 
 });

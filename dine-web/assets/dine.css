@@ -89,6 +89,7 @@
   line-height: 24px;
   padding: 3px 20px;
   text-align: left;
+  cursor: pointer;
 }
 .twitter-typeahead .tt-menu .tt-suggestion.tt-cursor {
   background-color: #0097cf;
@@ -109,6 +110,10 @@
   font-size: smaller;
 }
 
+.twitter-typeahead .tt-highlight {
+  color: #ff004c;
+}
+
 /* Branch Metrics - Smart App Banners */
 /*removing the default 76px added on body when showing banner*/
 body.branch-banner-is-active { 
@@ -116,12 +121,12 @@ body.branch-banner-is-active {
 }
 
 /* fading in content  */
-#dine-app.fade {
+#dine-app.fade-content {
   display: none;
   opacity: 0;
 }
 
-#dine-app.fade.fade-in {
+#dine-app.fade-content.fade-in {
   -webkit-animation: fadeIn 0.5s;
   -moz-animation: fadeIn 0.5s;
   -ms-animation: fadeIn 0.5s;
@@ -138,3 +143,55 @@ body.branch-banner-is-active {
 @-webkit-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @-moz-keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+
+/* mods for search bar in landing, will have to be replaced once properly updated in app.css */
+.section-restaurant-landing .section-map-app .map-data {
+  min-height: auto;
+  height: auto;
+  float: none;
+  position: relative;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.section-restaurant-landing .section-map-app .map-data .map-header {
+  top:20px;
+}
+
+.section-restaurant-landing .section-map-app .map-data .map-header .map-search {
+  width: 100%;
+}
+
+.section-restaurant-landing .section-map-app {
+  position: relative;
+  height: 70px;
+  z-index: 100;
+}
+
+.section-restaurant-landing .top-filters {
+  position:absolute;
+  display:none;
+}
+
+@media screen and (max-width: 768px){
+  .section-restaurant-landing .top-filters {
+    display: inline;
+  }
+  .section-restaurant-landing .section-map-app .map-data .map-header {
+      top: 70px;
+  }
+  .section-restaurant-landing .section-map-app {
+    height:100px;
+  }
+}
+
+/* fix for global header close after inserting bootstrap modal only*/
+/*.global-header-search .close.js-close-search:focus{
+  opacity: 1;
+  filter: alpha(opacity=1);  
+}
+.global-header-search .close.js-close-search:hover{
+  opacity: 0;
+  filter: alpha(opacity=0);  
+}  */ 
+
