@@ -154,7 +154,9 @@ body.branch-banner-is-active {
   z-index: 100;
 }
 
-/* mods for search bar in landing, will have to be replaced once properly updated in app.css */
+/* mods for search bar in landing, will have to be replaced once properly updated in app.css 
+or using a common css module
+*/
 .section-restaurant-landing .section-map-app .map-data {
   min-height: auto;
   height: auto;
@@ -162,6 +164,7 @@ body.branch-banner-is-active {
   position: relative;
   margin-left: auto;
   margin-right: auto;
+  color: #000000;
 }
 
 .section-map-app .map-data.without-map{
@@ -180,7 +183,8 @@ body.branch-banner-is-active {
   position: relative;
   height: 70px;
   z-index: 100;
-  top: -200px;
+  /*top: -200px;*/
+  top: 250px;
 }
 
 .section-restaurant-landing .top-filters {
@@ -188,21 +192,27 @@ body.branch-banner-is-active {
   display:none;
 }
 
+.section-restaurant-landing .hero .vc {
+  z-index: 200;
+}
+
 @media screen and (max-width: 877px){
   .section-restaurant-landing .section-map-app {
-    top: -150px;
+    /*top: -150px;*/
+    top: 200px;
   }
 }
 
 @media screen and (max-width: 767px){
   .section-restaurant-landing .top-filters {
-    display: inline;
+    /*display: inline;*/
   }
 
   .section-restaurant-landing .section-map-app .map-data .map-header {
       top: 70px;
   }
   .section-restaurant-landing .section-map-app {
+    display:none;
     height:100px;
     top: 0px;
   }
