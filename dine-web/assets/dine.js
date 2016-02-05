@@ -203,7 +203,7 @@ define('dine/components/restaurant-landing', ['exports', 'ember'], function (exp
     loadingCuisines: (function () {
       var cuisines = this.get('cuisines');
       return cuisines !== null && cuisines.length === 0;
-    }).property('cuisines'),
+    }).property('cuisines', 'neighborhoods'),
     cuisineLabel: (function () {
       if (this.get('loadingCuisines')) {
         return 'Loading...';
@@ -213,6 +213,16 @@ define('dine/components/restaurant-landing', ['exports', 'ember'], function (exp
         return 'Cuisine';
       }
     }).property('loadingCuisines', 'cuisineName'),
+    resetNeighborhood: function resetNeighborhood() {
+      this.set('neighborhoods', []);
+      this.set('neighborhoodSlug', "all");
+      this.set('neighborhoodName', "All");
+    },
+    resetCusine: function resetCusine() {
+      this.set('cuisines', []);
+      this.set('cuisineSlug', "all");
+      this.set('cuisineName', "All");
+    },
     actions: {
       getNeighborhoods: function getNeighborhoods(citySlug) {
         var city = this.get('cities').findBy('slug', citySlug);
@@ -221,10 +231,14 @@ define('dine/components/restaurant-landing', ['exports', 'ember'], function (exp
 
         this.set('citySlug', citySlug);
         this.set('cityName', city.title);
-        this.set('neighborhoods', []);
+        this.resetNeighborhood();
         this.set('collections', []);
-
-        this.sendAction('neighborhoodsAction', citySlug);
+        this.resetCusine();
+        var self = this;
+        Em.run.next(function () {
+          self.sendAction('neighborhoodsAction', citySlug);
+          self.sendAction('cuisinesAction', "all");
+        });
       },
       getCuisines: function getCuisines(neighborhoodSlug) {
         if (neighborhoodSlug === "all") {
@@ -238,6 +252,8 @@ define('dine/components/restaurant-landing', ['exports', 'ember'], function (exp
         }
 
         this.set('cuisines', []);
+        this.set('cuisineSlug', "all");
+        this.set('cuisineName', "All");
 
         this.sendAction('cuisinesAction', neighborhoodSlug);
       },
@@ -1482,6 +1498,8 @@ define('dine/routes/city', ['exports', 'ember'], function (exports, Ember) {
       this.neighborhoodsRequest(citySlug);
     },
     neighborhoodsRequest: function neighborhoodsRequest(citySlug) {
+      var _this = this;
+
       var self = this;
       var city = this.get('cities').findBy('slug', citySlug);
       var cityService = this.get('cityService');
@@ -1498,6 +1516,7 @@ define('dine/routes/city', ['exports', 'ember'], function (exports, Ember) {
           self.controllerFor('city.index').set('neighborhoods', neighborhoods);
           // }
         });
+        _this.send("getCuisines", "all");
       });
     },
     actions: {
@@ -13169,7 +13188,7 @@ catch(err) {
 if (runningTests) {
   require("dine/tests/test-helper");
 } else {
-  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+6d1453ad"});
+  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+5737cac2"});
 }
 
 /* jshint ignore:end */

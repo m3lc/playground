@@ -196,6 +196,16 @@ or using a common css module
   z-index: 200;
 }
 
+.section-map-app .map-data .map-header .map-search svg{
+  cursor: pointer;
+}
+.section-map-app .map-data .map-header .map-search:hover svg line {
+    stroke: #ff004c;
+}
+.section-map-app .map-data .map-header .map-search:hover svg circle {
+    stroke: #ff004c;
+}
+
 @media screen and (max-width: 877px){
   .section-restaurant-landing .section-map-app {
     /*top: -150px;*/
