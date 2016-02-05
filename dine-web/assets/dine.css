@@ -192,6 +192,10 @@ or using a common css module
   display:none;
 }
 
+section.hero.restaurant-landing {
+    z-index: 15;
+}
+
 .section-restaurant-landing .hero .vc {
   z-index: 200;
 }
