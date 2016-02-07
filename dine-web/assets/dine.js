@@ -299,6 +299,12 @@ define('dine/components/restaurant-map', ['exports', 'ember'], function (exports
 
       window.GoogleMapsLoader.load(function (google) {
         self._createMap(google);
+        if (parseInt($(".article-section-header").css("margin-bottom"), 10) !== 0) {
+          google.maps.event.addListener(self.get("map"), "idle", function () {
+            var restaurantMarkerLocation = self.get("entries")[0].geoLocation;
+            self.get("map").setCenter(new google.maps.LatLng(restaurantMarkerLocation.latitude, restaurantMarkerLocation.longitude));
+          });
+        }
       });
     }).on('didInsertElement'),
     _createMap: function _createMap(google) {
@@ -9912,7 +9918,7 @@ define('dine/tests/components/restaurant-map.jshint', function () {
   QUnit.module('JSHint - components');
   QUnit.test('components/restaurant-map.js should pass jshint', function(assert) { 
     assert.expect(1);
-    assert.ok(false, 'components/restaurant-map.js should pass jshint.\ncomponents/restaurant-map.js: line 65, col 9, \'section\' is defined but never used.\ncomponents/restaurant-map.js: line 64, col 43, \'hide\' is defined but never used.\ncomponents/restaurant-map.js: line 74, col 26, \'google\' is not defined.\ncomponents/restaurant-map.js: line 134, col 33, \'google\' is not defined.\n\n4 errors'); 
+    assert.ok(false, 'components/restaurant-map.js should pass jshint.\ncomponents/restaurant-map.js: line 74, col 9, \'section\' is defined but never used.\ncomponents/restaurant-map.js: line 73, col 43, \'hide\' is defined but never used.\ncomponents/restaurant-map.js: line 83, col 26, \'google\' is not defined.\ncomponents/restaurant-map.js: line 143, col 33, \'google\' is not defined.\n\n4 errors'); 
   });
 
 });
@@ -13188,7 +13194,7 @@ catch(err) {
 if (runningTests) {
   require("dine/tests/test-helper");
 } else {
-  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+5737cac2"});
+  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+93f2c050"});
 }
 
 /* jshint ignore:end */
