@@ -59,6 +59,62 @@ define('dine/components/collections-list', ['exports', 'dine/components/restaura
 	exports['default'] = RestaurantsListComponent['default'].extend({});
 
 });
+define('dine/components/dfp-ad', ['exports', 'ember'], function (exports, Ember) {
+
+	'use strict';
+
+	exports['default'] = Ember['default'].Component.extend({
+		dfpService: Em.inject.service("dfp"),
+		divID: null,
+		slot: null,
+		targetUrl: null,
+		endsWith: function endsWith(subjectString, searchString) {
+			var position = subjectString.length;
+			position -= searchString.length;
+			var lastIndex = subjectString.indexOf(searchString, position);
+			return lastIndex !== -1 && lastIndex === position;
+		},
+		shouldShow: (function () {
+			var targetUrl = this.get("targetUrl");
+			if (!Em.isEmpty(targetUrl)) {
+				if (Em.isArray(targetUrl)) {
+					var result = false;
+					for (var i = targetUrl.length - 1; i >= 0; i--) {
+						result = this.endsWith(window.location.href, targetUrl[i]);
+						if (result) {
+							break;
+						}
+					}
+					return result;
+				} else {
+					return this.endsWith(window.location.href, targetUrl);
+				}
+			} else {
+				return true;
+			}
+		}).property("targetUrl"),
+		setupDFPService: (function () {
+			if (this.get("shouldShow")) {
+				this.set("slot", this.get("dfpService.slots")[this.get("divID")]);
+			}
+		}).on("init"),
+		setupDFPAd: (function () {
+			if (this.get("shouldShow")) {
+				var self = this;
+				var googletag = window.googletag;
+				googletag.cmd.push(function () {
+					googletag.display(self.get("divID"));
+				});
+				if (googletag.pubads) {
+					googletag.pubads().refresh([self.get("slot")]);
+				}
+			} else {
+				this.$().css("display", "none");
+			}
+		}).on("didInsertElement")
+	});
+
+});
 define('dine/components/is-mobile', ['exports', 'ember', 'dine/utils/common-utils'], function (exports, Ember, utils) {
 
 	'use strict';
@@ -299,10 +355,13 @@ define('dine/components/restaurant-map', ['exports', 'ember'], function (exports
 
       window.GoogleMapsLoader.load(function (google) {
         self._createMap(google);
-        if (parseInt($(".article-section-header").css("margin-bottom"), 10) !== 0) {
-          google.maps.event.addListener(self.get("map"), "idle", function () {
+        //checking if artice section is displayed on top of map or not
+        // if not displayed on top of map then center the marker
+        if (self.get("entries").length === 1 && parseInt($(".article-section-header").css("margin-bottom"), 10) !== 0) {
+          var idleListener = google.maps.event.addListener(self.get("map"), "idle", function () {
             var restaurantMarkerLocation = self.get("entries")[0].geoLocation;
             self.get("map").setCenter(new google.maps.LatLng(restaurantMarkerLocation.latitude, restaurantMarkerLocation.longitude));
+            google.maps.event.removeListener(idleListener);
           });
         }
       });
@@ -1897,6 +1956,7 @@ define('dine/services/branch-metrics', ['exports', 'ember', 'dine/config/environ
     */
     exports['default'] = Ember['default'].Service.extend({
         branch: null,
+        constants: Em.inject.service(),
         init: function init() {
             this.resetSmartBanner();
             this.initBranchMetrics();
@@ -1954,9 +2014,10 @@ define('dine/services/branch-metrics', ['exports', 'ember', 'dine/config/environ
             localStorage.removeItem("BRANCH_WEBSDK_KEYhideBanner");
         },
         _showBanner: function _showBanner(options, data) {
+            var self = this;
             var defaultOptions = {
                 // icon: 'http://icons.iconarchive.com/icons/wineass/ios7-redesign/512/Appstore-icon.png',
-                icon: ENV['default'].baseURL + 'assets/images/dine-icon.png',
+                icon: (ENV['default'].baseURL || self.get("constants.staticS3Url") + "/dist/") + 'assets/images/dine-icon.png',
                 title: "DINE by Tasting Table",
                 description: "Send yourself a link to discover your city's best restaurants",
                 downloadAppButtonText: "Download",
@@ -2239,6 +2300,98 @@ define('dine/services/constants', ['exports', 'ember'], function (exports, Ember
   exports['default'] = Ember['default'].Service.extend({
     staticS3Url: window.staticS3Url
   });
+
+});
+define('dine/services/dfp', ['exports', 'ember'], function (exports, Ember) {
+
+	'use strict';
+
+	exports['default'] = Ember['default'].Service.extend({
+		slots: {},
+		init: function init() {
+			this._super.apply(this, arguments);
+
+			this.setupDFP();
+			this.defineSlots();
+		},
+		setupDFP: function setupDFP() {
+
+			var googletag = window.googletag = googletag || {};
+			googletag.cmd = googletag.cmd || [];
+			(function () {
+				var gads = document.createElement('script');
+				gads.async = true;
+				gads.type = 'text/javascript';
+				var useSSL = 'https:' == document.location.protocol;
+				gads.src = (useSSL ? 'https:' : 'http:') + '//www.googletagservices.com/tag/js/gpt.js';
+				var node = document.getElementsByTagName('script')[0];
+				node.parentNode.insertBefore(gads, node);
+			})();
+		},
+		defineSlots: function defineSlots() {
+			var self = this;
+			var googletag = window.googletag;
+			googletag.cmd.push(function () {
+				var slot1 = 'div-gpt-ad-1448375439589-0';
+				self.get("slots")[slot1] = googletag.defineSlot('/2575196/New_300x250', [300, 250], slot1).addService(googletag.pubads());
+
+				var slot2 = 'div-gpt-ad-1448375439589-1';
+				self.get("slots")[slot2] = googletag.defineSlot('/2575196/New_300x600', [300, 600], slot2).addService(googletag.pubads());
+
+				var slot3 = 'div-gpt-ad-1448375439589-2';
+				self.get("slots")[slot3] = googletag.defineSlot('/2575196/New_10_300x250', [300, 250], slot3).addService(googletag.pubads());
+
+				var slot4 = 'div-gpt-ad-1448375439589-3';
+				self.get("slots")[slot4] = googletag.defineSlot('/2575196/New_11_300x250', [300, 250], slot4).addService(googletag.pubads());
+
+				var slot5 = 'div-gpt-ad-1448375439589-4';
+				self.get("slots")[slot5] = googletag.defineSlot('/2575196/New_12_300x250', [300, 250], slot5).addService(googletag.pubads());
+
+				var slot6 = 'div-gpt-ad-1448375439589-5';
+				self.get("slots")[slot6] = googletag.defineSlot('/2575196/New_13_300x250', [300, 250], slot6).addService(googletag.pubads());
+
+				var slot7 = 'div-gpt-ad-1448375439589-6';
+				self.get("slots")[slot7] = googletag.defineSlot('/2575196/New_14_300x250', [300, 250], slot7).addService(googletag.pubads());
+
+				var slot8 = 'div-gpt-ad-1448375439589-7';
+				self.get("slots")[slot8] = googletag.defineSlot('/2575196/New_15_300x250', [300, 250], slot8).addService(googletag.pubads());
+
+				var slot9 = 'div-gpt-ad-1448375439589-8';
+				self.get("slots")[slot9] = googletag.defineSlot('/2575196/New_16_300x250', [300, 250], slot9).addService(googletag.pubads());
+
+				var slot10 = 'div-gpt-ad-1448375439589-9';
+				self.get("slots")[slot10] = googletag.defineSlot('/2575196/New_2_300x250', [300, 250], slot10).addService(googletag.pubads());
+
+				var slot11 = 'div-gpt-ad-1448375439589-10';
+				self.get("slots")[slot11] = googletag.defineSlot('/2575196/New_3_300x250', [300, 250], slot11).addService(googletag.pubads());
+
+				var slot12 = 'div-gpt-ad-1448375439589-11';
+				self.get("slots")[slot12] = googletag.defineSlot('/2575196/New_4_300x250', [300, 250], slot12).addService(googletag.pubads());
+
+				var slot13 = 'div-gpt-ad-1448375439589-12';
+				self.get("slots")[slot13] = googletag.defineSlot('/2575196/New_5_300x250', [300, 250], slot13).addService(googletag.pubads());
+
+				var slot14 = 'div-gpt-ad-1448375439589-13';
+				self.get("slots")[slot14] = googletag.defineSlot('/2575196/New_6_300x250', [300, 250], slot14).addService(googletag.pubads());
+
+				var slot15 = 'div-gpt-ad-1448375439589-14';
+				self.get("slots")[slot15] = googletag.defineSlot('/2575196/New_7_300x250', [300, 250], slot15).addService(googletag.pubads());
+
+				var slot16 = 'div-gpt-ad-1448375439589-15';
+				self.get("slots")[slot16] = googletag.defineSlot('/2575196/New_8_300x250', [300, 250], slot16).addService(googletag.pubads());
+
+				var slot17 = 'div-gpt-ad-1448375439589-16';
+				self.get("slots")[slot17] = googletag.defineSlot('/2575196/New_9_300x250', [300, 250], slot17).addService(googletag.pubads());
+
+				var slot18 = 'div-gpt-ad-1448375439589-17';
+				self.get("slots")[slot18] = googletag.defineSlot('/2575196/Rising_Star_Billboard', [970, 250], slot18).addService(googletag.pubads());
+
+				googletag.pubads().enableSingleRequest();
+				googletag.enableServices();
+			});
+		}
+
+	});
 
 });
 define('dine/templates/application', ['exports'], function (exports) {
@@ -2603,6 +2756,8 @@ define('dine/templates/city/collections/restaurants', ['exports'], function (exp
         dom.appendChild(el0, el1);
         var el1 = dom.createComment("");
         dom.appendChild(el0, el1);
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
         var el1 = dom.createComment("");
@@ -2612,16 +2767,18 @@ define('dine/templates/city/collections/restaurants', ['exports'], function (exp
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var morphs = new Array(3);
+        var morphs = new Array(4);
         morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
         morphs[1] = dom.createMorphAt(fragment,2,2,contextualElement);
-        morphs[2] = dom.createMorphAt(fragment,4,4,contextualElement);
+        morphs[2] = dom.createMorphAt(fragment,3,3,contextualElement);
+        morphs[3] = dom.createMorphAt(fragment,5,5,contextualElement);
         dom.insertBoundary(fragment, 0);
         return morphs;
       },
       statements: [
         ["inline","smart-app-banner",[],["bannerData",["subexpr","@mut",[["get","bannerData",["loc",[null,[1,30],[1,40]]]]],[],[]]],["loc",[null,[1,0],[1,42]]]],
         ["block","is-mobile",[],["show",false],0,null,["loc",[null,[2,0],[4,14]]]],
+        ["inline","dfp-ad",[],["divID","div-gpt-ad-1448375439589-0","width",300,"height",250,"targetUrl","uE12SjOdaA"],["loc",[null,[5,0],[5,89]]]],
         ["inline","collection-restaurants-list",[],["city",["subexpr","@mut",[["get","city",["loc",[null,[6,35],[6,39]]]]],[],[]],"cityName",["subexpr","@mut",[["get","cityName",["loc",[null,[7,39],[7,47]]]]],[],[]],"citySlug",["subexpr","@mut",[["get","citySlug",["loc",[null,[8,39],[8,47]]]]],[],[]],"cities",["subexpr","@mut",[["get","cities",["loc",[null,[9,37],[9,43]]]]],[],[]],"resultsKey","restaurants","restaurants",["subexpr","@mut",[["get","restaurants",["loc",[null,[11,42],[11,53]]]]],[],[]],"collection",["subexpr","@mut",[["get","collection",["loc",[null,[12,41],[12,51]]]]],[],[]]],["loc",[null,[6,0],[12,53]]]]
       ],
       locals: [],
@@ -3642,11 +3799,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 219,
+                "line": 220,
                 "column": 16
               },
               "end": {
-                "line": 221,
+                "line": 222,
                 "column": 16
               }
             },
@@ -3673,8 +3830,8 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["attribute","src",["concat",[["get","image.url",["loc",[null,[220,30],[220,39]]]]]]],
-            ["attribute","alt",["concat",[["get","image.source",["loc",[null,[220,50],[220,62]]]]]]]
+            ["attribute","src",["concat",[["get","image.url",["loc",[null,[221,30],[221,39]]]]]]],
+            ["attribute","alt",["concat",[["get","image.source",["loc",[null,[221,50],[221,62]]]]]]]
           ],
           locals: ["image"],
           templates: []
@@ -3686,11 +3843,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 191,
+              "line": 192,
               "column": 10
             },
             "end": {
-              "line": 232,
+              "line": 233,
               "column": 10
             }
           },
@@ -3843,9 +4000,9 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","each",[["get","restaurant.imagesArray",["loc",[null,[219,24],[219,46]]]]],[],0,null,["loc",[null,[219,16],[221,25]]]],
-          ["attribute","href",["concat",["https://instagram.com/",["get","instagramHandle",["loc",[null,[226,51],[226,66]]]]]]],
-          ["content","instagramHandle",["loc",[null,[227,21],[227,40]]]]
+          ["block","each",[["get","restaurant.imagesArray",["loc",[null,[220,24],[220,46]]]]],[],0,null,["loc",[null,[220,16],[222,25]]]],
+          ["attribute","href",["concat",["https://instagram.com/",["get","instagramHandle",["loc",[null,[227,51],[227,66]]]]]]],
+          ["content","instagramHandle",["loc",[null,[228,21],[228,40]]]]
         ],
         locals: [],
         templates: [child0]
@@ -3861,7 +4018,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 238,
+            "line": 239,
             "column": 0
           }
         },
@@ -4258,6 +4415,10 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         dom.setAttribute(el6,"class","ad");
         var el7 = dom.createTextNode("\n            ");
         dom.appendChild(el6, el7);
+        var el7 = dom.createComment("");
+        dom.appendChild(el6, el7);
+        var el7 = dom.createTextNode("\n            ");
+        dom.appendChild(el6, el7);
         var el7 = dom.createElement("div");
         dom.setAttribute(el7,"class","ad-dots");
         var el8 = dom.createTextNode("\n              ");
@@ -4308,7 +4469,8 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         var element16 = dom.childAt(fragment, [4, 1, 1, 1]);
         var element17 = dom.childAt(element16, [1, 3]);
         var element18 = dom.childAt(element17, [3]);
-        var morphs = new Array(17);
+        var element19 = dom.childAt(element16, [3]);
+        var morphs = new Array(18);
         morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
         morphs[1] = dom.createMorphAt(element12,1,1);
         morphs[2] = dom.createMorphAt(dom.childAt(element12, [3]),1,1);
@@ -4325,7 +4487,8 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         morphs[13] = dom.createMorphAt(dom.childAt(element17, [1]),3,3);
         morphs[14] = dom.createMorphAt(element18,1,1);
         morphs[15] = dom.createMorphAt(element18,3,3);
-        morphs[16] = dom.createMorphAt(dom.childAt(element16, [3]),7,7);
+        morphs[16] = dom.createMorphAt(dom.childAt(element19, [3]),1,1);
+        morphs[17] = dom.createMorphAt(element19,7,7);
         dom.insertBoundary(fragment, 0);
         return morphs;
       },
@@ -4346,7 +4509,8 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         ["block","each",[["get","restaurant.quotes",["loc",[null,[141,22],[141,39]]]]],[],5,null,["loc",[null,[141,14],[147,23]]]],
         ["block","if",[["get","tags.length",["loc",[null,[151,20],[151,31]]]]],[],6,null,["loc",[null,[151,14],[163,21]]]],
         ["block","if",[["get","dishes.length",["loc",[null,[165,20],[165,33]]]]],[],7,null,["loc",[null,[165,14],[177,21]]]],
-        ["block","if",[["get","restaurant.imagesArray.length",["loc",[null,[191,16],[191,45]]]]],[],8,null,["loc",[null,[191,10],[232,17]]]]
+        ["inline","dfp-ad",[],["divID","div-gpt-ad-1448375439589-1","width",300,"height",600,"targetUrl","ZiTPQWZEQn"],["loc",[null,[185,12],[185,101]]]],
+        ["block","if",[["get","restaurant.imagesArray.length",["loc",[null,[192,16],[192,45]]]]],[],8,null,["loc",[null,[192,10],[233,17]]]]
       ],
       locals: [],
       templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8]
@@ -5737,6 +5901,53 @@ define('dine/templates/components/collections-list', ['exports'], function (expo
   }()));
 
 });
+define('dine/templates/components/dfp-ad', ['exports'], function (exports) {
+
+  'use strict';
+
+  exports['default'] = Ember.HTMLBars.template((function() {
+    return {
+      meta: {
+        "revision": "Ember@2.0.0",
+        "loc": {
+          "source": null,
+          "start": {
+            "line": 1,
+            "column": 0
+          },
+          "end": {
+            "line": 1,
+            "column": 72
+          }
+        },
+        "moduleName": "dine/templates/components/dfp-ad.hbs"
+      },
+      arity: 0,
+      cachedFragment: null,
+      hasRendered: false,
+      buildFragment: function buildFragment(dom) {
+        var el0 = dom.createDocumentFragment();
+        var el1 = dom.createElement("div");
+        dom.appendChild(el0, el1);
+        return el0;
+      },
+      buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+        var element0 = dom.childAt(fragment, [0]);
+        var morphs = new Array(2);
+        morphs[0] = dom.createAttrMorph(element0, 'id');
+        morphs[1] = dom.createAttrMorph(element0, 'style');
+        return morphs;
+      },
+      statements: [
+        ["attribute","id",["get","divID",["loc",[null,[1,10],[1,15]]]]],
+        ["attribute","style",["concat",["height:",["get","height",["loc",[null,[1,34],[1,40]]]],"px; width:",["get","width",["loc",[null,[1,54],[1,59]]]],"px;"]]]
+      ],
+      locals: [],
+      templates: []
+    };
+  }()));
+
+});
 define('dine/templates/components/is-mobile', ['exports'], function (exports) {
 
   'use strict';
@@ -6986,8 +7197,8 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
             "column": 0
           },
           "end": {
-            "line": 150,
-            "column": 0
+            "line": 151,
+            "column": 66
           }
         },
         "moduleName": "dine/templates/components/restaurant-landing.hbs"
@@ -7308,6 +7519,12 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         dom.appendChild(el0, el1);
         var el1 = dom.createTextNode("\n");
         dom.appendChild(el0, el1);
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n");
+        dom.appendChild(el0, el1);
+        var el1 = dom.createComment("");
+        dom.appendChild(el0, el1);
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
@@ -7319,7 +7536,7 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         var element10 = dom.childAt(element7, [11]);
         var element11 = dom.childAt(element7, [13]);
         var element12 = dom.childAt(element6, [5, 3, 0]);
-        var morphs = new Array(11);
+        var morphs = new Array(13);
         morphs[0] = dom.createAttrMorph(element5, 'style');
         morphs[1] = dom.createMorphAt(dom.childAt(element8, [1, 1]),1,1);
         morphs[2] = dom.createMorphAt(dom.childAt(element8, [3]),1,1);
@@ -7331,6 +7548,9 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         morphs[8] = dom.createMorphAt(dom.childAt(element6, [3, 1, 1, 1]),1,1);
         morphs[9] = dom.createAttrMorph(element12, 'src');
         morphs[10] = dom.createMorphAt(dom.childAt(fragment, [3, 1]),1,1);
+        morphs[11] = dom.createMorphAt(fragment,5,5,contextualElement);
+        morphs[12] = dom.createMorphAt(fragment,7,7,contextualElement);
+        dom.insertBoundary(fragment, null);
         return morphs;
       },
       statements: [
@@ -7344,7 +7564,9 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         ["element","action",["search"],["on","click"],["loc",[null,[81,35],[81,65]]]],
         ["content","restaurants-map-search",["loc",[null,[90,12],[90,38]]]],
         ["attribute","src",["concat",[["get","constants.staticS3Url",["loc",[null,[99,76],[99,97]]]],"/v_2016/images/app-store.png"]]],
-        ["block","if",[["get","loadingCollections",["loc",[null,[135,10],[135,28]]]]],[],7,8,["loc",[null,[135,4],[147,11]]]]
+        ["block","if",[["get","loadingCollections",["loc",[null,[135,10],[135,28]]]]],[],7,8,["loc",[null,[135,4],[147,11]]]],
+        ["inline","dfp-ad",[],["divID","div-gpt-ad-1448375439589-0","width",300,"height",250],["loc",[null,[150,0],[150,66]]]],
+        ["inline","dfp-ad",[],["divID","div-gpt-ad-1448375439589-2","width",300,"height",250],["loc",[null,[151,0],[151,66]]]]
       ],
       locals: [],
       templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8]
@@ -9856,6 +10078,17 @@ define('dine/tests/components/collections-list.jshint', function () {
   });
 
 });
+define('dine/tests/components/dfp-ad.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - components');
+  QUnit.test('components/dfp-ad.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'components/dfp-ad.js should pass jshint.'); 
+  });
+
+});
 define('dine/tests/components/is-mobile.jshint', function () {
 
   'use strict';
@@ -9918,7 +10151,7 @@ define('dine/tests/components/restaurant-map.jshint', function () {
   QUnit.module('JSHint - components');
   QUnit.test('components/restaurant-map.js should pass jshint', function(assert) { 
     assert.expect(1);
-    assert.ok(false, 'components/restaurant-map.js should pass jshint.\ncomponents/restaurant-map.js: line 74, col 9, \'section\' is defined but never used.\ncomponents/restaurant-map.js: line 73, col 43, \'hide\' is defined but never used.\ncomponents/restaurant-map.js: line 83, col 26, \'google\' is not defined.\ncomponents/restaurant-map.js: line 143, col 33, \'google\' is not defined.\n\n4 errors'); 
+    assert.ok(false, 'components/restaurant-map.js should pass jshint.\ncomponents/restaurant-map.js: line 77, col 9, \'section\' is defined but never used.\ncomponents/restaurant-map.js: line 76, col 43, \'hide\' is defined but never used.\ncomponents/restaurant-map.js: line 86, col 26, \'google\' is not defined.\ncomponents/restaurant-map.js: line 146, col 33, \'google\' is not defined.\n\n4 errors'); 
   });
 
 });
@@ -10586,6 +10819,150 @@ define('dine/tests/integration/components/collections-list-test.jshint', functio
   QUnit.test('integration/components/collections-list-test.js should pass jshint', function(assert) { 
     assert.expect(1);
     assert.ok(true, 'integration/components/collections-list-test.js should pass jshint.'); 
+  });
+
+});
+define('dine/tests/integration/components/dfp-ad-test', ['ember-qunit'], function (ember_qunit) {
+
+  'use strict';
+
+  ember_qunit.moduleForComponent('dfp-ad', 'Integration | Component | dfp ad', {
+    integration: true
+  });
+
+  ember_qunit.test('it renders', function (assert) {
+    assert.expect(2);
+
+    // Set any properties with this.set('myProperty', 'value');
+    // Handle any actions with this.on('myAction', function(val) { ... });
+
+    this.render(Ember.HTMLBars.template((function () {
+      return {
+        meta: {
+          'revision': 'Ember@2.0.0',
+          'loc': {
+            'source': null,
+            'start': {
+              'line': 1,
+              'column': 0
+            },
+            'end': {
+              'line': 1,
+              'column': 10
+            }
+          }
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createComment('');
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment, 0, 0, contextualElement);
+          dom.insertBoundary(fragment, 0);
+          dom.insertBoundary(fragment, null);
+          return morphs;
+        },
+        statements: [['content', 'dfp-ad', ['loc', [null, [1, 0], [1, 10]]]]],
+        locals: [],
+        templates: []
+      };
+    })()));
+
+    assert.equal(this.$().text().trim(), '');
+
+    // Template block usage:
+    this.render(Ember.HTMLBars.template((function () {
+      var child0 = (function () {
+        return {
+          meta: {
+            'revision': 'Ember@2.0.0',
+            'loc': {
+              'source': null,
+              'start': {
+                'line': 2,
+                'column': 4
+              },
+              'end': {
+                'line': 4,
+                'column': 4
+              }
+            }
+          },
+          arity: 0,
+          cachedFragment: null,
+          hasRendered: false,
+          buildFragment: function buildFragment(dom) {
+            var el0 = dom.createDocumentFragment();
+            var el1 = dom.createTextNode('      template block text\n');
+            dom.appendChild(el0, el1);
+            return el0;
+          },
+          buildRenderNodes: function buildRenderNodes() {
+            return [];
+          },
+          statements: [],
+          locals: [],
+          templates: []
+        };
+      })();
+
+      return {
+        meta: {
+          'revision': 'Ember@2.0.0',
+          'loc': {
+            'source': null,
+            'start': {
+              'line': 1,
+              'column': 0
+            },
+            'end': {
+              'line': 5,
+              'column': 2
+            }
+          }
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode('\n');
+          dom.appendChild(el0, el1);
+          var el1 = dom.createComment('');
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode('  ');
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(fragment, 1, 1, contextualElement);
+          return morphs;
+        },
+        statements: [['block', 'dfp-ad', [], [], 0, null, ['loc', [null, [2, 4], [4, 15]]]]],
+        locals: [],
+        templates: [child0]
+      };
+    })()));
+
+    assert.equal(this.$().text().trim(), 'template block text');
+  });
+
+});
+define('dine/tests/integration/components/dfp-ad-test.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - integration/components');
+  QUnit.test('integration/components/dfp-ad-test.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'integration/components/dfp-ad-test.js should pass jshint.'); 
   });
 
 });
@@ -12467,7 +12844,7 @@ define('dine/tests/services/branch-metrics.jshint', function () {
   QUnit.module('JSHint - services');
   QUnit.test('services/branch-metrics.js should pass jshint', function(assert) { 
     assert.expect(1);
-    assert.ok(false, 'services/branch-metrics.js should pass jshint.\nservices/branch-metrics.js: line 17, col 77, Expected \'{\' and instead saw \'c\'.\nservices/branch-metrics.js: line 17, col 239, Missing semicolon.\nservices/branch-metrics.js: line 17, col 331, Missing semicolon.\nservices/branch-metrics.js: line 17, col 332, Missing semicolon.\nservices/branch-metrics.js: line 20, col 63, \'data\' is defined but never used.\nservices/branch-metrics.js: line 20, col 58, \'err\' is defined but never used.\nservices/branch-metrics.js: line 47, col 47, \'event\' is defined but never used.\nservices/branch-metrics.js: line 20, col 9, \'branch\' is not defined.\nservices/branch-metrics.js: line 21, col 31, \'branch\' is not defined.\nservices/branch-metrics.js: line 23, col 27, \'branch\' is not defined.\nservices/branch-metrics.js: line 52, col 9, \'branch\' is not defined.\nservices/branch-metrics.js: line 73, col 13, \'branch\' is not defined.\n\n12 errors'); 
+    assert.ok(false, 'services/branch-metrics.js should pass jshint.\nservices/branch-metrics.js: line 18, col 77, Expected \'{\' and instead saw \'c\'.\nservices/branch-metrics.js: line 18, col 239, Missing semicolon.\nservices/branch-metrics.js: line 18, col 331, Missing semicolon.\nservices/branch-metrics.js: line 18, col 332, Missing semicolon.\nservices/branch-metrics.js: line 21, col 63, \'data\' is defined but never used.\nservices/branch-metrics.js: line 21, col 58, \'err\' is defined but never used.\nservices/branch-metrics.js: line 48, col 47, \'event\' is defined but never used.\nservices/branch-metrics.js: line 21, col 9, \'branch\' is not defined.\nservices/branch-metrics.js: line 22, col 31, \'branch\' is not defined.\nservices/branch-metrics.js: line 24, col 27, \'branch\' is not defined.\nservices/branch-metrics.js: line 53, col 9, \'branch\' is not defined.\nservices/branch-metrics.js: line 75, col 13, \'branch\' is not defined.\n\n12 errors'); 
   });
 
 });
@@ -12490,6 +12867,17 @@ define('dine/tests/services/constants.jshint', function () {
   QUnit.test('services/constants.js should pass jshint', function(assert) { 
     assert.expect(1);
     assert.ok(true, 'services/constants.js should pass jshint.'); 
+  });
+
+});
+define('dine/tests/services/dfp.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - services');
+  QUnit.test('services/dfp.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(false, 'services/dfp.js should pass jshint.\nservices/dfp.js: line 19, col 37, Expected \'===\' and instead saw \'==\'.\n\n1 error'); 
   });
 
 });
@@ -13124,6 +13512,33 @@ define('dine/tests/unit/services/constants-test.jshint', function () {
   });
 
 });
+define('dine/tests/unit/services/dfp-test', ['ember-qunit'], function (ember_qunit) {
+
+  'use strict';
+
+  ember_qunit.moduleFor('service:dfp', 'Unit | Service | dfp', {
+    // Specify the other units that are required for this test.
+    // needs: ['service:foo']
+  });
+
+  // Replace this with your real tests.
+  ember_qunit.test('it exists', function (assert) {
+    var service = this.subject();
+    assert.ok(service);
+  });
+
+});
+define('dine/tests/unit/services/dfp-test.jshint', function () {
+
+  'use strict';
+
+  QUnit.module('JSHint - unit/services');
+  QUnit.test('unit/services/dfp-test.js should pass jshint', function(assert) { 
+    assert.expect(1);
+    assert.ok(true, 'unit/services/dfp-test.js should pass jshint.'); 
+  });
+
+});
 define('dine/tests/utils/common-utils.jshint', function () {
 
   'use strict';
@@ -13194,7 +13609,7 @@ catch(err) {
 if (runningTests) {
   require("dine/tests/test-helper");
 } else {
-  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+93f2c050"});
+  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+29f31edf"});
 }
 
 /* jshint ignore:end */
