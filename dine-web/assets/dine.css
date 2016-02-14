@@ -243,3 +243,30 @@ section.hero.restaurant-landing {
   filter: alpha(opacity=0);  
 }  */ 
 
+
+/* make drop down lists touch device friendly */
+
+.menu.hover {
+    z-index: 100;
+}
+
+.menu.hover .menu-items {
+    opacity: 1;
+    padding: 5px;
+    height: auto;
+    transition: opacity .25s,box-shadow .25s;
+    box-shadow: 0 10px 25px rgba(0,0,0,.1);
+}
+
+.dropdown.hover {
+    overflow: visible;
+    z-index: 18;
+    transition: border-color .25s,box-shadow .25s;
+}
+
+.dropdown.hover ul {
+    transition: border-color .25s,opacity .25s,box-shadow .25s,height .25s;
+    box-shadow: 0 10px 25px rgba(0,0,0,.1);
+    height: auto;
+    opacity: 1;
+}
