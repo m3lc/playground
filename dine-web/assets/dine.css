@@ -153,6 +153,13 @@ body.branch-banner-is-active {
 .section-map-app .map-data {
   z-index: 100;
 }
+.section-map-app .map-data.without-map {
+  z-index: 17;
+}
+
+.section-map-app .map-data.without-map .map-search{
+  width: 100%;
+}
 
 /* mods for search bar in landing, will have to be replaced once properly updated in app.css 
 or using a common css module
@@ -192,6 +199,10 @@ or using a common css module
   display:none;
 }
 
+.section-restaurant-landing .section-map-app.bottom-search {
+  display:none;
+}
+
 section.hero.restaurant-landing {
     z-index: 15;
 }
@@ -210,6 +221,10 @@ section.hero.restaurant-landing {
     stroke: #ff004c;
 }
 
+.section-map-app .map-data.without-map {
+    background: #fff;
+}
+
 @media screen and (max-width: 877px){
   .section-restaurant-landing .section-map-app {
     /*top: -150px;*/
@@ -219,16 +234,23 @@ section.hero.restaurant-landing {
 
 @media screen and (max-width: 767px){
   .section-restaurant-landing .top-filters {
-    /*display: inline;*/
+    display: inline;
+    z-index: 101;
+    padding-bottom: 0px;
   }
 
   .section-restaurant-landing .section-map-app .map-data .map-header {
       top: 70px;
   }
   .section-restaurant-landing .section-map-app {
-    display:none;
     height:100px;
     top: 0px;
+  }
+  .section-restaurant-landing .section-map-app.top-search {
+    display:none;
+  }
+  .section-restaurant-landing .section-map-app.bottom-search {
+    display:block;
   }
 }
 
@@ -245,6 +267,14 @@ section.hero.restaurant-landing {
 
 
 /* make drop down lists touch device friendly */
+
+.hover .icon {
+    -webkit-transform: rotate(180deg);
+    transform: rotate(180deg);
+    top: 2px;
+    transition: -webkit-transform .25s;
+    transition: transform .25s;
+}
 
 .menu.hover {
     z-index: 100;
@@ -264,9 +294,37 @@ section.hero.restaurant-landing {
     transition: border-color .25s,box-shadow .25s;
 }
 
+.dropdown.hover svg {
+    transition: -webkit-transform .25s;
+    transition: transform .25s;
+    -webkit-transform: rotate(180deg);
+    transform: rotate(180deg);
+}
+
 .dropdown.hover ul {
     transition: border-color .25s,opacity .25s,box-shadow .25s,height .25s;
     box-shadow: 0 10px 25px rgba(0,0,0,.1);
     height: auto;
     opacity: 1;
+}
+
+/* mod for dpf ads */
+
+/*
+Modifying left and right padding to center the add inside the dots div
+however if the dots div has a relative to the window width, then at some 
+point it will end up having a width smaller than the assigned width
+of the ad eg 300px, thus not allowing to center.
+The dots div will either have specific width or the dimensions of the 
+ad need to be relative as well.
+*/
+.ad-dots {
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+@media screen and (min-width: 1024px){
+  .dfp-ad {
+    width: 100%;
+  }
 }

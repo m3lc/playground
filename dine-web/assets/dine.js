@@ -1274,8 +1274,14 @@ define('dine/routes/city/collections/restaurants', ['exports', 'ember'], functio
       var cityService = this.get('cityService');
       var currentCity = cityService.current;
 
+      var restaurantsForMap = model.restaurants.sortBy('title');
+
+      //limit to the ones shown on the left view
+      //the initial page size is 20
+      restaurantsForMap = restaurantsForMap.slice(0, 20);
+
       controller.set('collection', model);
-      controller.set('restaurants', model.restaurants.sortBy('title'));
+      controller.set('restaurants', restaurantsForMap);
       controller.set('cities', cityService.cities);
       controller.set('cityName', currentCity.name);
       controller.set('citySlug', currentCity.slug);
@@ -1412,6 +1418,9 @@ define('dine/routes/city/restaurant', ['exports', 'ember'], function (exports, E
       };
       controller.set("bannerData", bannerData);
       var targeting = [{ key: "City", value: currentCity.id }, { key: "ID", value: restaurant.id }];
+      if (!Em.isEmpty(currentCity.collections)) {
+        targeting.push({ key: "Section", value: currentCity.collections[0].id });
+      }
       controller.set("targeting", targeting);
     }
   });
@@ -1536,9 +1545,12 @@ define('dine/routes/city/restaurants', ['exports', 'ember'], function (exports, 
       var restaurants = model;
       var restaurantsForMap = restaurants;
 
-      if (neighborhoodSlug === 'all' && cuisineSlug === 'all' && featureSlug === 'all') {
-        restaurantsForMap = restaurants.slice(0, 10);
-      }
+      //limit to the ones shown on the left view
+      //the initial page size is 20
+      restaurantsForMap = restaurants.slice(0, 20);
+      // if (neighborhoodSlug === 'all' && cuisineSlug === 'all' && featureSlug === 'all') {
+      // restaurantsForMap = restaurants.slice(0, 10);
+      // }
 
       controller.set('restaurants', restaurants);
       controller.set('restaurantsForMap', restaurantsForMap);
@@ -3950,11 +3962,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "loc": {
               "source": null,
               "start": {
-                "line": 224,
+                "line": 223,
                 "column": 16
               },
               "end": {
-                "line": 226,
+                "line": 225,
                 "column": 16
               }
             },
@@ -3981,8 +3993,8 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             return morphs;
           },
           statements: [
-            ["attribute","src",["concat",[["get","image.url",["loc",[null,[225,30],[225,39]]]]]]],
-            ["attribute","alt",["concat",[["get","image.source",["loc",[null,[225,50],[225,62]]]]]]]
+            ["attribute","src",["concat",[["get","image.url",["loc",[null,[224,30],[224,39]]]]]]],
+            ["attribute","alt",["concat",[["get","image.source",["loc",[null,[224,50],[224,62]]]]]]]
           ],
           locals: ["image"],
           templates: []
@@ -3994,11 +4006,11 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           "loc": {
             "source": null,
             "start": {
-              "line": 196,
+              "line": 195,
               "column": 10
             },
             "end": {
-              "line": 237,
+              "line": 236,
               "column": 10
             }
           },
@@ -4151,9 +4163,9 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
           return morphs;
         },
         statements: [
-          ["block","each",[["get","restaurant.imagesArray",["loc",[null,[224,24],[224,46]]]]],[],0,null,["loc",[null,[224,16],[226,25]]]],
-          ["attribute","href",["concat",["https://instagram.com/",["get","instagramHandle",["loc",[null,[231,51],[231,66]]]]]]],
-          ["content","instagramHandle",["loc",[null,[232,21],[232,40]]]]
+          ["block","each",[["get","restaurant.imagesArray",["loc",[null,[223,24],[223,46]]]]],[],0,null,["loc",[null,[223,16],[225,25]]]],
+          ["attribute","href",["concat",["https://instagram.com/",["get","instagramHandle",["loc",[null,[230,51],[230,66]]]]]]],
+          ["content","instagramHandle",["loc",[null,[231,21],[231,40]]]]
         ],
         locals: [],
         templates: [child0]
@@ -4169,7 +4181,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
             "column": 0
           },
           "end": {
-            "line": 243,
+            "line": 252,
             "column": 0
           }
         },
@@ -4590,7 +4602,25 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         dom.appendChild(el5, el6);
         var el6 = dom.createComment("");
         dom.appendChild(el5, el6);
-        var el6 = dom.createTextNode("        ");
+        var el6 = dom.createTextNode("          \n          ");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createElement("div");
+        dom.setAttribute(el6,"class","ad");
+        var el7 = dom.createTextNode("\n            ");
+        dom.appendChild(el6, el7);
+        var el7 = dom.createElement("div");
+        dom.setAttribute(el7,"class","ad-dots");
+        var el8 = dom.createTextNode("\n              ");
+        dom.appendChild(el7, el8);
+        var el8 = dom.createComment("");
+        dom.appendChild(el7, el8);
+        var el8 = dom.createTextNode("\n            ");
+        dom.appendChild(el7, el8);
+        dom.appendChild(el6, el7);
+        var el7 = dom.createTextNode("\n          ");
+        dom.appendChild(el6, el7);
+        dom.appendChild(el5, el6);
+        var el6 = dom.createTextNode("\n\n        ");
         dom.appendChild(el5, el6);
         dom.appendChild(el4, el5);
         var el5 = dom.createTextNode("\n      ");
@@ -4621,7 +4651,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         var element17 = dom.childAt(element16, [1, 3]);
         var element18 = dom.childAt(element17, [3]);
         var element19 = dom.childAt(element16, [3]);
-        var morphs = new Array(18);
+        var morphs = new Array(19);
         morphs[0] = dom.createMorphAt(fragment,0,0,contextualElement);
         morphs[1] = dom.createMorphAt(element12,1,1);
         morphs[2] = dom.createMorphAt(dom.childAt(element12, [3]),1,1);
@@ -4640,6 +4670,7 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         morphs[15] = dom.createMorphAt(element18,3,3);
         morphs[16] = dom.createMorphAt(dom.childAt(element19, [3, 1]),1,1);
         morphs[17] = dom.createMorphAt(element19,7,7);
+        morphs[18] = dom.createMorphAt(dom.childAt(element19, [9, 1]),1,1);
         dom.insertBoundary(fragment, 0);
         return morphs;
       },
@@ -4660,8 +4691,9 @@ define('dine/templates/city/restaurant', ['exports'], function (exports) {
         ["block","each",[["get","restaurant.quotes",["loc",[null,[141,22],[141,39]]]]],[],5,null,["loc",[null,[141,14],[147,23]]]],
         ["block","if",[["get","tags.length",["loc",[null,[151,20],[151,31]]]]],[],6,null,["loc",[null,[151,14],[163,21]]]],
         ["block","if",[["get","dishes.length",["loc",[null,[165,20],[165,33]]]]],[],7,null,["loc",[null,[165,14],[177,21]]]],
-        ["inline","dfp-ad",[],["divID","div-gpt-ad-1448375439589-1","targetUrl","ZiTPQWZEQn","targeting",["subexpr","@mut",[["get","targeting",["loc",[null,[189,26],[189,35]]]]],[],[]]],["loc",[null,[186,14],[190,18]]]],
-        ["block","if",[["get","restaurant.imagesArray.length",["loc",[null,[196,16],[196,45]]]]],[],8,null,["loc",[null,[196,10],[237,17]]]]
+        ["inline","dfp-ad",[],["divID","div-gpt-ad-1448375439589-2","targeting",["subexpr","@mut",[["get","targeting",["loc",[null,[188,26],[188,35]]]]],[],[]]],["loc",[null,[186,14],[189,18]]]],
+        ["block","if",[["get","restaurant.imagesArray.length",["loc",[null,[195,16],[195,45]]]]],[],8,null,["loc",[null,[195,10],[236,17]]]],
+        ["inline","dfp-ad",[],["divID","div-gpt-ad-1448375439589-3","targeting",["subexpr","@mut",[["get","targeting",["loc",[null,[242,26],[242,35]]]]],[],[]]],["loc",[null,[240,14],[243,18]]]]
       ],
       locals: [],
       templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8]
@@ -6898,10 +6930,10 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           return el0;
         },
         buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var element4 = dom.childAt(fragment, [1]);
+          var element5 = dom.childAt(fragment, [1]);
           var morphs = new Array(2);
-          morphs[0] = dom.createElementMorph(element4);
-          morphs[1] = dom.createMorphAt(element4,1,1);
+          morphs[0] = dom.createElementMorph(element5);
+          morphs[1] = dom.createMorphAt(element5,1,1);
           return morphs;
         },
         statements: [
@@ -6950,10 +6982,10 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
             return el0;
           },
           buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-            var element2 = dom.childAt(fragment, [1]);
+            var element3 = dom.childAt(fragment, [1]);
             var morphs = new Array(2);
-            morphs[0] = dom.createElementMorph(element2);
-            morphs[1] = dom.createMorphAt(element2,1,1);
+            morphs[0] = dom.createElementMorph(element3);
+            morphs[1] = dom.createMorphAt(element3,1,1);
             return morphs;
           },
           statements: [
@@ -6998,9 +7030,9 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           return el0;
         },
         buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var element3 = dom.childAt(fragment, [1]);
+          var element4 = dom.childAt(fragment, [1]);
           var morphs = new Array(2);
-          morphs[0] = dom.createElementMorph(element3);
+          morphs[0] = dom.createElementMorph(element4);
           morphs[1] = dom.createMorphAt(fragment,3,3,contextualElement);
           dom.insertBoundary(fragment, null);
           return morphs;
@@ -7091,10 +7123,10 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
             return el0;
           },
           buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-            var element0 = dom.childAt(fragment, [1]);
+            var element1 = dom.childAt(fragment, [1]);
             var morphs = new Array(2);
-            morphs[0] = dom.createElementMorph(element0);
-            morphs[1] = dom.createMorphAt(element0,1,1);
+            morphs[0] = dom.createElementMorph(element1);
+            morphs[1] = dom.createMorphAt(element1,1,1);
             return morphs;
           },
           statements: [
@@ -7139,9 +7171,9 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           return el0;
         },
         buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-          var element1 = dom.childAt(fragment, [1]);
+          var element2 = dom.childAt(fragment, [1]);
           var morphs = new Array(2);
-          morphs[0] = dom.createElementMorph(element1);
+          morphs[0] = dom.createElementMorph(element2);
           morphs[1] = dom.createMorphAt(fragment,3,3,contextualElement);
           dom.insertBoundary(fragment, null);
           return morphs;
@@ -7201,11 +7233,66 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           "loc": {
             "source": null,
             "start": {
-              "line": 135,
+              "line": 115,
+              "column": 12
+            },
+            "end": {
+              "line": 119,
+              "column": 12
+            }
+          },
+          "moduleName": "dine/templates/components/restaurant-landing.hbs"
+        },
+        arity: 1,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("              ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("li");
+          dom.setAttribute(el1,"class","menu-item");
+          var el2 = dom.createTextNode("\n                ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("span");
+          dom.setAttribute(el2,"class","menu-link");
+          var el3 = dom.createComment("");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n              ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var element0 = dom.childAt(fragment, [1]);
+          var morphs = new Array(2);
+          morphs[0] = dom.createElementMorph(element0);
+          morphs[1] = dom.createMorphAt(dom.childAt(element0, [1]),0,0);
+          return morphs;
+        },
+        statements: [
+          ["element","action",["getNeighborhoods",["get","city.slug",["loc",[null,[116,46],[116,55]]]]],["on","click"],["loc",[null,[116,18],[116,68]]]],
+          ["content","city.title",["loc",[null,[117,40],[117,54]]]]
+        ],
+        locals: ["city"],
+        templates: []
+      };
+    }());
+    var child8 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 137,
               "column": 4
             },
             "end": {
-              "line": 137,
+              "line": 139,
               "column": 4
             }
           },
@@ -7230,13 +7317,13 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           return morphs;
         },
         statements: [
-          ["content","loading-indicator",["loc",[null,[136,6],[136,27]]]]
+          ["content","loading-indicator",["loc",[null,[138,6],[138,27]]]]
         ],
         locals: [],
         templates: []
       };
     }());
-    var child8 = (function() {
+    var child9 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -7244,11 +7331,11 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
             "loc": {
               "source": null,
               "start": {
-                "line": 143,
+                "line": 145,
                 "column": 8
               },
               "end": {
-                "line": 145,
+                "line": 147,
                 "column": 8
               }
             },
@@ -7273,7 +7360,7 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
             return morphs;
           },
           statements: [
-            ["inline","collection-card",[],["collection",["subexpr","@mut",[["get","collection",["loc",[null,[144,39],[144,49]]]]],[],[]]],["loc",[null,[144,10],[144,51]]]]
+            ["inline","collection-card",[],["collection",["subexpr","@mut",[["get","collection",["loc",[null,[146,39],[146,49]]]]],[],[]]],["loc",[null,[146,10],[146,51]]]]
           ],
           locals: ["collection"],
           templates: []
@@ -7285,11 +7372,11 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           "loc": {
             "source": null,
             "start": {
-              "line": 137,
+              "line": 139,
               "column": 4
             },
             "end": {
-              "line": 147,
+              "line": 149,
               "column": 4
             }
           },
@@ -7333,8 +7420,8 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
           return morphs;
         },
         statements: [
-          ["content","cityName",["loc",[null,[139,24],[139,36]]]],
-          ["block","each",[["get","collections",["loc",[null,[143,16],[143,27]]]]],[],0,null,["loc",[null,[143,8],[145,17]]]]
+          ["content","cityName",["loc",[null,[141,24],[141,36]]]],
+          ["block","each",[["get","collections",["loc",[null,[145,16],[145,27]]]]],[],0,null,["loc",[null,[145,8],[147,17]]]]
         ],
         locals: [],
         templates: [child0]
@@ -7350,7 +7437,7 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
             "column": 0
           },
           "end": {
-            "line": 150,
+            "line": 152,
             "column": 0
           }
         },
@@ -7585,7 +7672,7 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         var el4 = dom.createTextNode("\n\n\n    ");
         dom.appendChild(el3, el4);
         var el4 = dom.createElement("div");
-        dom.setAttribute(el4,"class","section-map-app");
+        dom.setAttribute(el4,"class","section-map-app top-search");
         var el5 = dom.createTextNode("\n      ");
         dom.appendChild(el4, el5);
         var el5 = dom.createElement("section");
@@ -7650,9 +7737,88 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         var el2 = dom.createTextNode("\n");
         dom.appendChild(el1, el2);
         dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n\n");
+        var el1 = dom.createTextNode("\n\n\n  ");
         dom.appendChild(el0, el1);
-        var el1 = dom.createTextNode("\n");
+        var el1 = dom.createElement("div");
+        dom.setAttribute(el1,"class","section-map-app bottom-search");
+        var el2 = dom.createTextNode("\n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("div");
+        dom.setAttribute(el2,"class","top-filters");
+        var el3 = dom.createTextNode("\n      ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("div");
+        dom.setAttribute(el3,"class","city-filters");
+        var el4 = dom.createTextNode("\n        ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("div");
+        dom.setAttribute(el4,"class","menu");
+        dom.setAttribute(el4,"tabindex","0");
+        var el5 = dom.createTextNode("\n          ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("span");
+        dom.setAttribute(el5,"class","current-item");
+        var el6 = dom.createTextNode("\n            ");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createComment("");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createTextNode("\n            ");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createElement("span");
+        dom.setAttribute(el6,"class","icon icon-arrow-down");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createTextNode("\n          ");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n          ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createElement("ul");
+        dom.setAttribute(el5,"class","menu-items");
+        var el6 = dom.createTextNode("\n");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createComment("");
+        dom.appendChild(el5, el6);
+        var el6 = dom.createTextNode("          ");
+        dom.appendChild(el5, el6);
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n    \n    ");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createElement("section");
+        dom.setAttribute(el2,"class","map-data");
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        var el3 = dom.createElement("div");
+        dom.setAttribute(el3,"class","map-header");
+        var el4 = dom.createTextNode("\n      ");
+        dom.appendChild(el3, el4);
+        var el4 = dom.createElement("div");
+        dom.setAttribute(el4,"class","container");
+        var el5 = dom.createTextNode("\n        ");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createComment("");
+        dom.appendChild(el4, el5);
+        var el5 = dom.createTextNode("\n      ");
+        dom.appendChild(el4, el5);
+        dom.appendChild(el3, el4);
+        var el4 = dom.createTextNode("\n    ");
+        dom.appendChild(el3, el4);
+        dom.appendChild(el2, el3);
+        var el3 = dom.createTextNode("\n    ");
+        dom.appendChild(el2, el3);
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("\n  ");
+        dom.appendChild(el1, el2);
+        dom.appendChild(el0, el1);
+        var el1 = dom.createTextNode("\n\n\n");
         dom.appendChild(el0, el1);
         var el1 = dom.createElement("section");
         dom.setAttribute(el1,"class","latest cards-layout cards-layout-one-column cards-layout-no-bot-pad");
@@ -7675,26 +7841,31 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         return el0;
       },
       buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
-        var element5 = dom.childAt(fragment, [0, 1]);
-        var element6 = dom.childAt(element5, [1]);
-        var element7 = dom.childAt(element6, [1, 3]);
-        var element8 = dom.childAt(element7, [3]);
-        var element9 = dom.childAt(element7, [7]);
-        var element10 = dom.childAt(element7, [11]);
-        var element11 = dom.childAt(element7, [13]);
-        var element12 = dom.childAt(element6, [5, 3, 0]);
-        var morphs = new Array(11);
-        morphs[0] = dom.createAttrMorph(element5, 'style');
-        morphs[1] = dom.createMorphAt(dom.childAt(element8, [1, 1]),1,1);
-        morphs[2] = dom.createMorphAt(dom.childAt(element8, [3]),1,1);
-        morphs[3] = dom.createMorphAt(dom.childAt(element9, [1, 1]),0,0);
-        morphs[4] = dom.createMorphAt(dom.childAt(element9, [3]),1,1);
-        morphs[5] = dom.createMorphAt(dom.childAt(element10, [1, 1]),0,0);
-        morphs[6] = dom.createMorphAt(dom.childAt(element10, [3]),1,1);
-        morphs[7] = dom.createElementMorph(element11);
-        morphs[8] = dom.createMorphAt(dom.childAt(element6, [3, 1, 1, 1]),1,1);
-        morphs[9] = dom.createAttrMorph(element12, 'src');
-        morphs[10] = dom.createMorphAt(dom.childAt(fragment, [3, 1]),1,1);
+        var element6 = dom.childAt(fragment, [0, 1]);
+        var element7 = dom.childAt(element6, [1]);
+        var element8 = dom.childAt(element7, [1, 3]);
+        var element9 = dom.childAt(element8, [3]);
+        var element10 = dom.childAt(element8, [7]);
+        var element11 = dom.childAt(element8, [11]);
+        var element12 = dom.childAt(element8, [13]);
+        var element13 = dom.childAt(element7, [5, 3, 0]);
+        var element14 = dom.childAt(fragment, [2]);
+        var element15 = dom.childAt(element14, [1, 1, 1]);
+        var morphs = new Array(14);
+        morphs[0] = dom.createAttrMorph(element6, 'style');
+        morphs[1] = dom.createMorphAt(dom.childAt(element9, [1, 1]),1,1);
+        morphs[2] = dom.createMorphAt(dom.childAt(element9, [3]),1,1);
+        morphs[3] = dom.createMorphAt(dom.childAt(element10, [1, 1]),0,0);
+        morphs[4] = dom.createMorphAt(dom.childAt(element10, [3]),1,1);
+        morphs[5] = dom.createMorphAt(dom.childAt(element11, [1, 1]),0,0);
+        morphs[6] = dom.createMorphAt(dom.childAt(element11, [3]),1,1);
+        morphs[7] = dom.createElementMorph(element12);
+        morphs[8] = dom.createMorphAt(dom.childAt(element7, [3, 1, 1, 1]),1,1);
+        morphs[9] = dom.createAttrMorph(element13, 'src');
+        morphs[10] = dom.createMorphAt(dom.childAt(element15, [1]),1,1);
+        morphs[11] = dom.createMorphAt(dom.childAt(element15, [3]),1,1);
+        morphs[12] = dom.createMorphAt(dom.childAt(element14, [3, 1, 1]),1,1);
+        morphs[13] = dom.createMorphAt(dom.childAt(fragment, [4, 1]),1,1);
         return morphs;
       },
       statements: [
@@ -7708,10 +7879,13 @@ define('dine/templates/components/restaurant-landing', ['exports'], function (ex
         ["element","action",["search"],["on","click"],["loc",[null,[81,35],[81,65]]]],
         ["content","restaurants-map-search",["loc",[null,[90,12],[90,38]]]],
         ["attribute","src",["concat",[["get","constants.staticS3Url",["loc",[null,[99,76],[99,97]]]],"/v_2016/images/app-store.png"]]],
-        ["block","if",[["get","loadingCollections",["loc",[null,[135,10],[135,28]]]]],[],7,8,["loc",[null,[135,4],[147,11]]]]
+        ["content","cityName",["loc",[null,[111,12],[111,24]]]],
+        ["block","each",[["get","cities",["loc",[null,[115,20],[115,26]]]]],[],7,null,["loc",[null,[115,12],[119,21]]]],
+        ["content","restaurants-map-search",["loc",[null,[128,8],[128,34]]]],
+        ["block","if",[["get","loadingCollections",["loc",[null,[137,10],[137,28]]]]],[],8,9,["loc",[null,[137,4],[149,11]]]]
       ],
       locals: [],
-      templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8]
+      templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8, child9]
     };
   }()));
 
@@ -7939,6 +8113,69 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
       };
     }());
     var child3 = (function() {
+      return {
+        meta: {
+          "revision": "Ember@2.0.0",
+          "loc": {
+            "source": null,
+            "start": {
+              "line": 30,
+              "column": 4
+            },
+            "end": {
+              "line": 38,
+              "column": 2
+            }
+          },
+          "moduleName": "dine/templates/components/restaurants-list.hbs"
+        },
+        arity: 0,
+        cachedFragment: null,
+        hasRendered: false,
+        buildFragment: function buildFragment(dom) {
+          var el0 = dom.createDocumentFragment();
+          var el1 = dom.createTextNode("    ");
+          dom.appendChild(el0, el1);
+          var el1 = dom.createElement("section");
+          dom.setAttribute(el1,"class","map-data without-map");
+          var el2 = dom.createTextNode("\n      ");
+          dom.appendChild(el1, el2);
+          var el2 = dom.createElement("div");
+          dom.setAttribute(el2,"class","map-header");
+          var el3 = dom.createTextNode("\n            ");
+          dom.appendChild(el2, el3);
+          var el3 = dom.createElement("div");
+          dom.setAttribute(el3,"class","container");
+          var el4 = dom.createTextNode("\n                  ");
+          dom.appendChild(el3, el4);
+          var el4 = dom.createComment("");
+          dom.appendChild(el3, el4);
+          var el4 = dom.createTextNode("\n            ");
+          dom.appendChild(el3, el4);
+          dom.appendChild(el2, el3);
+          var el3 = dom.createTextNode("\n      ");
+          dom.appendChild(el2, el3);
+          dom.appendChild(el1, el2);
+          var el2 = dom.createTextNode("\n    ");
+          dom.appendChild(el1, el2);
+          dom.appendChild(el0, el1);
+          var el1 = dom.createTextNode("\n");
+          dom.appendChild(el0, el1);
+          return el0;
+        },
+        buildRenderNodes: function buildRenderNodes(dom, fragment, contextualElement) {
+          var morphs = new Array(1);
+          morphs[0] = dom.createMorphAt(dom.childAt(fragment, [1, 1, 1]),1,1);
+          return morphs;
+        },
+        statements: [
+          ["inline","restaurants-map-search",[],["searchQuery",["subexpr","@mut",[["get","searchQuery",["loc",[null,[34,55],[34,66]]]]],[],[]]],["loc",[null,[34,18],[34,68]]]]
+        ],
+        locals: [],
+        templates: []
+      };
+    }());
+    var child4 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -7946,11 +8183,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             "loc": {
               "source": null,
               "start": {
-                "line": 46,
+                "line": 55,
                 "column": 10
               },
               "end": {
-                "line": 48,
+                "line": 57,
                 "column": 10
               }
             },
@@ -7979,7 +8216,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["element","bind-attr",[],["href","view.href"],["loc",[null,[47,15],[47,45]]]]
+            ["element","bind-attr",[],["href","view.href"],["loc",[null,[56,15],[56,45]]]]
           ],
           locals: [],
           templates: []
@@ -7993,11 +8230,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
               "loc": {
                 "source": null,
                 "start": {
-                  "line": 50,
+                  "line": 59,
                   "column": 12
                 },
                 "end": {
-                  "line": 54,
+                  "line": 63,
                   "column": 12
                 }
               },
@@ -8031,8 +8268,8 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
               return morphs;
             },
             statements: [
-              ["element","bind-attr",[],["href","view.href"],["loc",[null,[51,17],[51,47]]]],
-              ["content","neighborhood.name",["loc",[null,[52,16],[52,37]]]]
+              ["element","bind-attr",[],["href","view.href"],["loc",[null,[60,17],[60,47]]]],
+              ["content","neighborhood.name",["loc",[null,[61,16],[61,37]]]]
             ],
             locals: [],
             templates: []
@@ -8044,11 +8281,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             "loc": {
               "source": null,
               "start": {
-                "line": 49,
+                "line": 58,
                 "column": 10
               },
               "end": {
-                "line": 55,
+                "line": 64,
                 "column": 10
               }
             },
@@ -8071,7 +8308,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[50,42],[50,50]]]],["get","neighborhood.slug",["loc",[null,[50,51],[50,68]]]],"all",["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[50,101],[50,112]]]]],["loc",[null,[50,75],[50,113]]]]],["tagName","li"],0,null,["loc",[null,[50,12],[54,24]]]]
+            ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[59,42],[59,50]]]],["get","neighborhood.slug",["loc",[null,[59,51],[59,68]]]],"all",["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[59,101],[59,112]]]]],["loc",[null,[59,75],[59,113]]]]],["tagName","li"],0,null,["loc",[null,[59,12],[63,24]]]]
           ],
           locals: ["neighborhood"],
           templates: [child0]
@@ -8083,11 +8320,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           "loc": {
             "source": null,
             "start": {
-              "line": 45,
+              "line": 54,
               "column": 8
             },
             "end": {
-              "line": 56,
+              "line": 65,
               "column": 8
             }
           },
@@ -8113,25 +8350,25 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           return morphs;
         },
         statements: [
-          ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[46,40],[46,48]]]],"all","all",["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[46,87],[46,98]]]]],["loc",[null,[46,61],[46,99]]]]],["tagName","li"],0,null,["loc",[null,[46,10],[48,22]]]],
-          ["block","each",[["get","neighborhoods",["loc",[null,[49,18],[49,31]]]]],[],1,null,["loc",[null,[49,10],[55,19]]]]
+          ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[55,40],[55,48]]]],"all","all",["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[55,87],[55,98]]]]],["loc",[null,[55,61],[55,99]]]]],["tagName","li"],0,null,["loc",[null,[55,10],[57,22]]]],
+          ["block","each",[["get","neighborhoods",["loc",[null,[58,18],[58,31]]]]],[],1,null,["loc",[null,[58,10],[64,19]]]]
         ],
         locals: [],
         templates: [child0, child1]
       };
     }());
-    var child4 = (function() {
+    var child5 = (function() {
       return {
         meta: {
           "revision": "Ember@2.0.0",
           "loc": {
             "source": null,
             "start": {
-              "line": 56,
+              "line": 65,
               "column": 8
             },
             "end": {
-              "line": 58,
+              "line": 67,
               "column": 8
             }
           },
@@ -8160,7 +8397,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
         templates: []
       };
     }());
-    var child5 = (function() {
+    var child6 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -8168,11 +8405,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             "loc": {
               "source": null,
               "start": {
-                "line": 70,
+                "line": 79,
                 "column": 10
               },
               "end": {
-                "line": 74,
+                "line": 83,
                 "column": 10
               }
             },
@@ -8201,7 +8438,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["element","bind-attr",[],["href","view.href"],["loc",[null,[71,15],[71,45]]]]
+            ["element","bind-attr",[],["href","view.href"],["loc",[null,[80,15],[80,45]]]]
           ],
           locals: [],
           templates: []
@@ -8215,11 +8452,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
               "loc": {
                 "source": null,
                 "start": {
-                  "line": 76,
+                  "line": 85,
                   "column": 12
                 },
                 "end": {
-                  "line": 80,
+                  "line": 89,
                   "column": 12
                 }
               },
@@ -8253,8 +8490,8 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
               return morphs;
             },
             statements: [
-              ["element","bind-attr",[],["href","view.href"],["loc",[null,[77,17],[77,47]]]],
-              ["content","cuisine.name",["loc",[null,[78,16],[78,32]]]]
+              ["element","bind-attr",[],["href","view.href"],["loc",[null,[86,17],[86,47]]]],
+              ["content","cuisine.name",["loc",[null,[87,16],[87,32]]]]
             ],
             locals: [],
             templates: []
@@ -8266,11 +8503,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             "loc": {
               "source": null,
               "start": {
-                "line": 75,
+                "line": 84,
                 "column": 10
               },
               "end": {
-                "line": 81,
+                "line": 90,
                 "column": 10
               }
             },
@@ -8293,7 +8530,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[76,42],[76,50]]]],["get","neighborhoodSlug",["loc",[null,[76,51],[76,67]]]],["get","cuisine.slug",["loc",[null,[76,68],[76,80]]]],["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[76,107],[76,118]]]]],["loc",[null,[76,81],[76,119]]]]],["tagName","li"],0,null,["loc",[null,[76,12],[80,24]]]]
+            ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[85,42],[85,50]]]],["get","neighborhoodSlug",["loc",[null,[85,51],[85,67]]]],["get","cuisine.slug",["loc",[null,[85,68],[85,80]]]],["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[85,107],[85,118]]]]],["loc",[null,[85,81],[85,119]]]]],["tagName","li"],0,null,["loc",[null,[85,12],[89,24]]]]
           ],
           locals: ["cuisine"],
           templates: [child0]
@@ -8305,11 +8542,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           "loc": {
             "source": null,
             "start": {
-              "line": 69,
+              "line": 78,
               "column": 8
             },
             "end": {
-              "line": 82,
+              "line": 91,
               "column": 8
             }
           },
@@ -8335,25 +8572,25 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           return morphs;
         },
         statements: [
-          ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[70,40],[70,48]]]],["get","neighborhoodSlug",["loc",[null,[70,49],[70,65]]]],"all",["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[70,98],[70,109]]]]],["loc",[null,[70,72],[70,110]]]]],["tagName","li"],0,null,["loc",[null,[70,10],[74,22]]]],
-          ["block","each",[["get","cuisines",["loc",[null,[75,18],[75,26]]]]],[],1,null,["loc",[null,[75,10],[81,19]]]]
+          ["block","link-to",["city.restaurants",["get","citySlug",["loc",[null,[79,40],[79,48]]]],["get","neighborhoodSlug",["loc",[null,[79,49],[79,65]]]],"all",["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[79,98],[79,109]]]]],["loc",[null,[79,72],[79,110]]]]],["tagName","li"],0,null,["loc",[null,[79,10],[83,22]]]],
+          ["block","each",[["get","cuisines",["loc",[null,[84,18],[84,26]]]]],[],1,null,["loc",[null,[84,10],[90,19]]]]
         ],
         locals: [],
         templates: [child0, child1]
       };
     }());
-    var child6 = (function() {
+    var child7 = (function() {
       return {
         meta: {
           "revision": "Ember@2.0.0",
           "loc": {
             "source": null,
             "start": {
-              "line": 82,
+              "line": 91,
               "column": 8
             },
             "end": {
-              "line": 84,
+              "line": 93,
               "column": 8
             }
           },
@@ -8382,7 +8619,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
         templates: []
       };
     }());
-    var child7 = (function() {
+    var child8 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -8390,11 +8627,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             "loc": {
               "source": null,
               "start": {
-                "line": 96,
+                "line": 105,
                 "column": 10
               },
               "end": {
-                "line": 98,
+                "line": 107,
                 "column": 10
               }
             },
@@ -8423,7 +8660,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["element","bind-attr",[],["href","view.href"],["loc",[null,[97,15],[97,45]]]]
+            ["element","bind-attr",[],["href","view.href"],["loc",[null,[106,15],[106,45]]]]
           ],
           locals: [],
           templates: []
@@ -8437,11 +8674,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
               "loc": {
                 "source": null,
                 "start": {
-                  "line": 100,
+                  "line": 109,
                   "column": 12
                 },
                 "end": {
-                  "line": 104,
+                  "line": 113,
                   "column": 12
                 }
               },
@@ -8475,8 +8712,8 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
               return morphs;
             },
             statements: [
-              ["element","bind-attr",[],["href","view.href"],["loc",[null,[101,17],[101,47]]]],
-              ["content","feature.name",["loc",[null,[102,16],[102,32]]]]
+              ["element","bind-attr",[],["href","view.href"],["loc",[null,[110,17],[110,47]]]],
+              ["content","feature.name",["loc",[null,[111,16],[111,32]]]]
             ],
             locals: [],
             templates: []
@@ -8488,11 +8725,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             "loc": {
               "source": null,
               "start": {
-                "line": 99,
+                "line": 108,
                 "column": 10
               },
               "end": {
-                "line": 105,
+                "line": 114,
                 "column": 10
               }
             },
@@ -8515,7 +8752,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["block","link-to",["city.restaurantsWithFeatures",["get","citySlug",["loc",[null,[100,54],[100,62]]]],["get","neighborhoodSlug",["loc",[null,[100,63],[100,79]]]],["get","cuisineSlug",["loc",[null,[100,80],[100,91]]]],["get","feature.slug",["loc",[null,[100,92],[100,104]]]],["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[100,131],[100,142]]]]],["loc",[null,[100,105],[100,143]]]]],["tagName","li"],0,null,["loc",[null,[100,12],[104,24]]]]
+            ["block","link-to",["city.restaurantsWithFeatures",["get","citySlug",["loc",[null,[109,54],[109,62]]]],["get","neighborhoodSlug",["loc",[null,[109,63],[109,79]]]],["get","cuisineSlug",["loc",[null,[109,80],[109,91]]]],["get","feature.slug",["loc",[null,[109,92],[109,104]]]],["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[109,131],[109,142]]]]],["loc",[null,[109,105],[109,143]]]]],["tagName","li"],0,null,["loc",[null,[109,12],[113,24]]]]
           ],
           locals: ["feature"],
           templates: [child0]
@@ -8527,11 +8764,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           "loc": {
             "source": null,
             "start": {
-              "line": 95,
+              "line": 104,
               "column": 8
             },
             "end": {
-              "line": 106,
+              "line": 115,
               "column": 8
             }
           },
@@ -8557,25 +8794,25 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           return morphs;
         },
         statements: [
-          ["block","link-to",["city.restaurantsWithFeatures",["get","citySlug",["loc",[null,[96,52],[96,60]]]],["get","neighborhoodSlug",["loc",[null,[96,61],[96,77]]]],["get","cuisineSlug",["loc",[null,[96,78],[96,89]]]],"all",["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[96,122],[96,133]]]]],["loc",[null,[96,96],[96,134]]]]],["tagName","li"],0,null,["loc",[null,[96,10],[98,22]]]],
-          ["block","each",[["get","features",["loc",[null,[99,18],[99,26]]]]],[],1,null,["loc",[null,[99,10],[105,19]]]]
+          ["block","link-to",["city.restaurantsWithFeatures",["get","citySlug",["loc",[null,[105,52],[105,60]]]],["get","neighborhoodSlug",["loc",[null,[105,61],[105,77]]]],["get","cuisineSlug",["loc",[null,[105,78],[105,89]]]],"all",["subexpr","query-params",[],["searchQuery",["get","searchQuery",["loc",[null,[105,122],[105,133]]]]],["loc",[null,[105,96],[105,134]]]]],["tagName","li"],0,null,["loc",[null,[105,10],[107,22]]]],
+          ["block","each",[["get","features",["loc",[null,[108,18],[108,26]]]]],[],1,null,["loc",[null,[108,10],[114,19]]]]
         ],
         locals: [],
         templates: [child0, child1]
       };
     }());
-    var child8 = (function() {
+    var child9 = (function() {
       return {
         meta: {
           "revision": "Ember@2.0.0",
           "loc": {
             "source": null,
             "start": {
-              "line": 106,
+              "line": 115,
               "column": 8
             },
             "end": {
-              "line": 108,
+              "line": 117,
               "column": 8
             }
           },
@@ -8604,18 +8841,18 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
         templates: []
       };
     }());
-    var child9 = (function() {
+    var child10 = (function() {
       return {
         meta: {
           "revision": "Ember@2.0.0",
           "loc": {
             "source": null,
             "start": {
-              "line": 116,
+              "line": 125,
               "column": 8
             },
             "end": {
-              "line": 120,
+              "line": 129,
               "column": 8
             }
           },
@@ -8648,13 +8885,13 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           return morphs;
         },
         statements: [
-          ["content","searchQuery",["loc",[null,[118,20],[118,35]]]]
+          ["content","searchQuery",["loc",[null,[127,20],[127,35]]]]
         ],
         locals: [],
         templates: []
       };
     }());
-    var child10 = (function() {
+    var child11 = (function() {
       var child0 = (function() {
         return {
           meta: {
@@ -8662,11 +8899,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             "loc": {
               "source": null,
               "start": {
-                "line": 168,
+                "line": 177,
                 "column": 16
               },
               "end": {
-                "line": 170,
+                "line": 179,
                 "column": 16
               }
             },
@@ -8691,7 +8928,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["inline","restaurant-card",[],["restaurant",["subexpr","@mut",[["get","restaurant",["loc",[null,[169,47],[169,57]]]]],[],[]]],["loc",[null,[169,18],[169,59]]]]
+            ["inline","restaurant-card",[],["restaurant",["subexpr","@mut",[["get","restaurant",["loc",[null,[178,47],[178,57]]]]],[],[]]],["loc",[null,[178,18],[178,59]]]]
           ],
           locals: ["restaurant"],
           templates: []
@@ -8704,11 +8941,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             "loc": {
               "source": null,
               "start": {
-                "line": 174,
+                "line": 183,
                 "column": 12
               },
               "end": {
-                "line": 180,
+                "line": 189,
                 "column": 12
               }
             },
@@ -8744,7 +8981,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             return morphs;
           },
           statements: [
-            ["element","action",["loadMore"],["on","click"],["loc",[null,[176,41],[176,73]]]]
+            ["element","action",["loadMore"],["on","click"],["loc",[null,[185,41],[185,73]]]]
           ],
           locals: [],
           templates: []
@@ -8756,11 +8993,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           "loc": {
             "source": null,
             "start": {
-              "line": 162,
+              "line": 171,
               "column": 6
             },
             "end": {
-              "line": 183,
+              "line": 192,
               "column": 6
             }
           },
@@ -8823,8 +9060,8 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
           return morphs;
         },
         statements: [
-          ["block","each",[["get","paginatedResults",["loc",[null,[168,24],[168,40]]]]],[],0,null,["loc",[null,[168,16],[170,25]]]],
-          ["block","if",[["get","showLoadMore",["loc",[null,[174,18],[174,30]]]]],[],1,null,["loc",[null,[174,12],[180,19]]]]
+          ["block","each",[["get","paginatedResults",["loc",[null,[177,24],[177,40]]]]],[],0,null,["loc",[null,[177,16],[179,25]]]],
+          ["block","if",[["get","showLoadMore",["loc",[null,[183,18],[183,30]]]]],[],1,null,["loc",[null,[183,12],[189,19]]]]
         ],
         locals: [],
         templates: [child0, child1]
@@ -8840,7 +9077,7 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
             "column": 0
           },
           "end": {
-            "line": 187,
+            "line": 196,
             "column": 0
           }
         },
@@ -8917,7 +9154,11 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
         var el3 = dom.createTextNode("\n  ");
         dom.appendChild(el2, el3);
         dom.appendChild(el1, el2);
-        var el2 = dom.createTextNode("\n  ");
+        var el2 = dom.createTextNode("\n");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createComment("");
+        dom.appendChild(el1, el2);
+        var el2 = dom.createTextNode("  ");
         dom.appendChild(el1, el2);
         var el2 = dom.createComment(" For the filters when one is selected an event is fired\n  $('body').trigger('dropdown-change', val); if you want want to customize the filters listen using $('body').on('dropdown-change', function(event, value) {});\n\n  Some filtering already exists, take out these if you don't want to use it:  data-behaviour=\"filter-card\" and  filter-card-holder\n  data-sharecount=\"100\" data-date=\"September 10, 2015\" data-type=\"~breakfast~brunch~\" on the cards enable them for filtering.\n  ");
         dom.appendChild(el1, el2);
@@ -9144,26 +9385,27 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
         var element10 = dom.childAt(element9, [1]);
         var element11 = dom.childAt(element10, [1, 1]);
         var element12 = dom.childAt(element10, [3]);
-        var element13 = dom.childAt(element9, [5]);
+        var element13 = dom.childAt(element9, [7]);
         var element14 = dom.childAt(element13, [1]);
         var element15 = dom.childAt(element13, [3]);
         var element16 = dom.childAt(element13, [5]);
-        var element17 = dom.childAt(element9, [7, 1]);
+        var element17 = dom.childAt(element9, [9, 1]);
         var element18 = dom.childAt(element17, [1]);
-        var morphs = new Array(13);
+        var morphs = new Array(14);
         morphs[0] = dom.createMorphAt(dom.childAt(element11, [1]),1,1);
         morphs[1] = dom.createMorphAt(dom.childAt(element11, [3]),1,1);
         morphs[2] = dom.createMorphAt(element12,1,1);
         morphs[3] = dom.createMorphAt(element12,3,3);
-        morphs[4] = dom.createMorphAt(dom.childAt(element14, [1, 1]),0,0);
-        morphs[5] = dom.createMorphAt(dom.childAt(element14, [3]),1,1);
-        morphs[6] = dom.createMorphAt(dom.childAt(element15, [1, 1]),0,0);
-        morphs[7] = dom.createMorphAt(dom.childAt(element15, [3]),1,1);
-        morphs[8] = dom.createMorphAt(dom.childAt(element16, [1, 1]),0,0);
-        morphs[9] = dom.createMorphAt(dom.childAt(element16, [3]),1,1);
-        morphs[10] = dom.createMorphAt(dom.childAt(element18, [1]),0,0);
-        morphs[11] = dom.createMorphAt(element18,3,3);
-        morphs[12] = dom.createMorphAt(element17,5,5);
+        morphs[4] = dom.createMorphAt(element9,3,3);
+        morphs[5] = dom.createMorphAt(dom.childAt(element14, [1, 1]),0,0);
+        morphs[6] = dom.createMorphAt(dom.childAt(element14, [3]),1,1);
+        morphs[7] = dom.createMorphAt(dom.childAt(element15, [1, 1]),0,0);
+        morphs[8] = dom.createMorphAt(dom.childAt(element15, [3]),1,1);
+        morphs[9] = dom.createMorphAt(dom.childAt(element16, [1, 1]),0,0);
+        morphs[10] = dom.createMorphAt(dom.childAt(element16, [3]),1,1);
+        morphs[11] = dom.createMorphAt(dom.childAt(element18, [1]),0,0);
+        morphs[12] = dom.createMorphAt(element18,3,3);
+        morphs[13] = dom.createMorphAt(element17,5,5);
         return morphs;
       },
       statements: [
@@ -9171,18 +9413,19 @@ define('dine/templates/components/restaurants-list', ['exports'], function (expo
         ["block","each",[["get","cities",["loc",[null,[10,18],[10,24]]]]],[],0,null,["loc",[null,[10,10],[16,19]]]],
         ["block","link-to",["city.collections",["get","citySlug",["loc",[null,[21,36],[21,44]]]]],[],1,null,["loc",[null,[21,6],[23,18]]]],
         ["block","link-to",["city.restaurantsWithFeatures",["get","citySlug",["loc",[null,[25,48],[25,56]]]],["get","neighborhoodSlug",["loc",[null,[25,57],[25,73]]]],["get","cuisineSlug",["loc",[null,[25,74],[25,85]]]],["get","featureSlug",["loc",[null,[25,86],[25,97]]]]],[],2,null,["loc",[null,[25,6],[27,18]]]],
-        ["content","neighborhoodLabel",["loc",[null,[39,34],[39,55]]]],
-        ["block","if",[["get","neighborhoods",["loc",[null,[45,14],[45,27]]]]],[],3,4,["loc",[null,[45,8],[58,15]]]],
-        ["content","cuisineLabel",["loc",[null,[63,34],[63,50]]]],
-        ["block","if",[["get","cuisines",["loc",[null,[69,14],[69,22]]]]],[],5,6,["loc",[null,[69,8],[84,15]]]],
-        ["content","featureLabel",["loc",[null,[89,34],[89,50]]]],
-        ["block","if",[["get","features",["loc",[null,[95,14],[95,22]]]]],[],7,8,["loc",[null,[95,8],[108,15]]]],
-        ["content","resultMessage",["loc",[null,[115,12],[115,29]]]],
-        ["block","if",[["get","searchQuery",["loc",[null,[116,14],[116,25]]]]],[],9,null,["loc",[null,[116,8],[120,15]]]],
-        ["block","if",[["get","restaurants.length",["loc",[null,[162,12],[162,30]]]]],[],10,null,["loc",[null,[162,6],[183,13]]]]
+        ["block","is-mobile",[],["show",true],3,null,["loc",[null,[30,4],[38,16]]]],
+        ["content","neighborhoodLabel",["loc",[null,[48,34],[48,55]]]],
+        ["block","if",[["get","neighborhoods",["loc",[null,[54,14],[54,27]]]]],[],4,5,["loc",[null,[54,8],[67,15]]]],
+        ["content","cuisineLabel",["loc",[null,[72,34],[72,50]]]],
+        ["block","if",[["get","cuisines",["loc",[null,[78,14],[78,22]]]]],[],6,7,["loc",[null,[78,8],[93,15]]]],
+        ["content","featureLabel",["loc",[null,[98,34],[98,50]]]],
+        ["block","if",[["get","features",["loc",[null,[104,14],[104,22]]]]],[],8,9,["loc",[null,[104,8],[117,15]]]],
+        ["content","resultMessage",["loc",[null,[124,12],[124,29]]]],
+        ["block","if",[["get","searchQuery",["loc",[null,[125,14],[125,25]]]]],[],10,null,["loc",[null,[125,8],[129,15]]]],
+        ["block","if",[["get","restaurants.length",["loc",[null,[171,12],[171,30]]]]],[],11,null,["loc",[null,[171,6],[192,13]]]]
       ],
       locals: [],
-      templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8, child9, child10]
+      templates: [child0, child1, child2, child3, child4, child5, child6, child7, child8, child9, child10, child11]
     };
   }()));
 
@@ -13849,7 +14092,7 @@ catch(err) {
 if (runningTests) {
   require("dine/tests/test-helper");
 } else {
-  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+759bc6e2"});
+  require("dine/app")["default"].create({"LOG_TRANSITIONS":true,"GOOGLE":{"API_KEY":"AIzaSyC_yRFd9HUL_NhnFR9RGIv2zmaYyyp0InA"},"Algolia":{"applicationId":"PPJGQ1WTTV","searchOnlyAPIKey":"2a1efed0f85fe8716c6cf5fd292f55f7"},"API_URL":"http://dine-api-staging.herokuapp.com/api","BRANCH_METRICS_KEY":"key_live_mhojXX163isZfyDAYX9MAphagagF8RoY","name":"dine","version":"0.0.0+f8ca7f64"});
 }
 
 /* jshint ignore:end */
